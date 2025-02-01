@@ -13,6 +13,7 @@
 
 int main(int argc, const char *argv[]) {
     int iFirstArgLength = 0;
+    int iStatus = 0;
 
     if (argc < 5) {
         printf("You have to have more arguments\n");
@@ -27,13 +28,12 @@ int main(int argc, const char *argv[]) {
     }
 
     if (strncmp(argv[1], CREA, 4) == 0){
-        createFile(argv);
-        return 0;
+        iStatus = createFile(argv);
     } else if (strncmp(argv[1], READ, 4) == 0) {
         printf("Jump to READ function\n");
     } else {
+        iStatus = 1;
         printf("First argument is not in expected format, you have to write \"CREA\", or \"READ\"\n");
-        return 1;
     }
-    return 0;
+    return iStatus;
 }
