@@ -26,10 +26,10 @@ int createFile(const char **argv) {
     const unsigned int iHeightLength = strlen(pszHeight);
     const unsigned int iWidthLength = strlen(pszWidth);
     unsigned int iLengthOfName = 0;
+    unsigned int checkIfExtentionValue = 1;
     char *pszFileName;
     char szCheckIfExtension[5];
     FILE *file;
-
     STE_FILE steFile;
 
     iStatus = widthAndHeightChecks(iHeightLength, iWidthLength, pszHeight, pszWidth);
@@ -56,12 +56,16 @@ int createFile(const char **argv) {
 
             iLengthOfName = strlen(pszName);
 
-            for (int i = 0; i < 4; i++) {
-                szCheckIfExtension[i] = pszName[iLengthOfName - 4 + i];
-            }
-            szCheckIfExtension[4] = '\0';
+            if (iLengthOfName > LENGTH_OF_EXTENSION) {
+                for (int i = 0; i < LENGTH_OF_EXTENSION; i++) {
+                    szCheckIfExtension[i] = pszName[iLengthOfName - LENGTH_OF_EXTENSION + i];
+                }
+                szCheckIfExtension[LENGTH_OF_EXTENSION] = '\0';
 
-            if (strncmp(szCheckIfExtension, FILE_EXTENSION, 4) == 0) {
+                checkIfExtentionValue = strncmp(szCheckIfExtension, FILE_EXTENSION, 4);
+            }
+
+            if (checkIfExtentionValue == 0) {
                 if (access(pszName, F_OK) == F_OK) {
                     iStatus = 1;
                     printf("File already exists\n");
