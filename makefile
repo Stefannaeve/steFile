@@ -34,5 +34,6 @@ run:
 	./$(TARGET) CREA something 16 16
 	
 .PHONY: clean
+
 clean:
 	$(RM) $(OBJDIR)/*.o *~core $(INCLDIR)/*~ $(TARGET)
