@@ -1,5 +1,5 @@
 /*.ste
 /main
-/obj/*
+/obj/*.o
 /cmake-build-debug/
 /.idea/
