@@ -9,8 +9,29 @@
 #define MAGIC_VALUE "STE0"
 #define FILE_EXTENSION ".ste"
 #define LENGTH_OF_EXTENSION 4
-#define SDL2_WIDTH 255
-#define SDL2_HEIGHT 255
+#define SDL2_WIDTH 1024
+#define SDL2_HEIGHT 1024
+#define PIXEL_DENSITY 256
+
+enum COLOR {
+    RED,
+    GREEN,
+    BLUE
+};
+
+enum COLOR_STRENGTH {
+    ZERO,
+    LOWER,
+    LOW,
+    MEDIUM,
+    HIGH,
+    HIGHER,
+    MAX
+};
+
+typedef struct _PIXEL {
+    uint8_t pixels[4];
+} PIXEL;
 
 typedef struct _STE_FILE {
     char magicValue[5];
@@ -18,6 +39,8 @@ typedef struct _STE_FILE {
     char height;
 } STE_FILE;
 
+void makeColor(enum COLOR color, uint8_t *value, uint8_t colorValue);
+void makeColorRGB(uint8_t *value, uint8_t red, uint8_t green, uint8_t blue);
 void writeToFile(const STE_FILE *steFile, FILE *file);
 int readSteFile();
 
@@ -122,10 +145,42 @@ int readSteFile() {
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_Texture *texture = SDL_CreateTexture(
         renderer,
-        SDL_PIXELFORMAT_RGBA32,
+        SDL_PIXELFORMAT_RGB332,
         SDL_TEXTUREACCESS_STREAMING,
         SDL2_WIDTH, SDL2_HEIGHT);
-    uint32_t pixels[SDL2_WIDTH * SDL2_HEIGHT];
+    uint8_t rawPixels[SDL2_WIDTH * SDL2_HEIGHT];
+    PIXEL pixels[PIXEL_DENSITY * PIXEL_DENSITY];
+    int pixelPosition = 0;
+    for (int i = 0; i < SDL2_WIDTH; i++) {
+        for (int j = 0; j < SDL2_HEIGHT-1; j++) {
+            if (i % 2 == 0) {
+                if (j % 2 == 0) {
+                    pixels[pixelPosition].pixels[0] = rawPixels[i*j];
+                    pixels[pixelPosition].pixels[1] = rawPixels[i*j+1];
+                    pixels[pixelPosition].pixels[2] = rawPixels[i+1*j];
+                    pixels[pixelPosition].pixels[3] = rawPixels[i+1*j+1];
+                    pixelPosition++;
+                }
+            } else {
+                break;
+            }
+        }
+    }
+
+    SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGB332);
+    //uint8_t *palette = createPalette(format);
+
+    uint8_t something = 0;
+    uint8_t something2 = 0;
+    makeColor(RED, &something, HIGH);
+    makeColor(GREEN, &something, LOWER);
+    makeColor(BLUE, &something, MAX);
+
+    makeColorRGB(&something2, HIGH, ZERO, ZERO);
+
+    printf("something: %d\n", something);
+    printf("something2: %d\n", something2);
+
     int running = 1;
     while (running) {
         SDL_Event event;
@@ -137,16 +192,32 @@ int readSteFile() {
 
         for (int y = 0; y < SDL2_HEIGHT; y++) {
             for (int x = 0; x < SDL2_WIDTH; x++) {
-                // Example: Gradient pattern
-                uint8_t r = x;  // Red increases with X
-                uint8_t g = y;  // Green increases with Y
-                uint8_t b = 0;  // Blue is zero
-                pixels[y * SDL2_WIDTH + x] = (r << 24) | (g << 16) | (b << 8) | 0xFF;
+                uint8_t mappedColor = 0x00;
+
+                rawPixels[y * SDL2_WIDTH + x] = mappedColor;
+            }
+        }
+
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                rawPixels[((SDL2_HEIGHT/2+i) * SDL2_WIDTH) + SDL2_WIDTH/2 + j] = something2;
+            }
+        }
+
+        for (int i = 0; i < PIXEL_DENSITY; i++) {
+            for (int j = 0; j < PIXEL_DENSITY; j++) {
+                //if (j % 2 == 0) {
+                    pixels[i*j].pixels[0] = something;
+                    pixels[i*j].pixels[1] = something;
+                    pixels[i*j].pixels[2] = something;
+                    pixels[i*j].pixels[3] = something;
+                //}
             }
         }
 
         // Update texture and render
-        SDL_UpdateTexture(texture, NULL, pixels, SDL2_WIDTH * sizeof(uint32_t));
+        SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
+        SDL_UpdateTexture(texture, NULL, pixels, SDL2_WIDTH * sizeof(uint8_t));
         SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
     }
@@ -155,6 +226,51 @@ int readSteFile() {
     SDL_DestroyWindow(window);
     SDL_Quit();
     return 0;
+}
+
+void makeColor(enum COLOR color, uint8_t *value, uint8_t colorValue) {
+    uint8_t mask = 0, bitshift = 0;
+    switch (color) {
+        case RED:
+            bitshift = 5;
+            mask = 0x07;
+            break;
+        case GREEN:
+            bitshift = 2;
+            mask = 0x07;
+            break;
+        case BLUE:
+            bitshift = 0;
+            mask = 0x03;
+            break;
+        default:
+            return;
+    }
+
+    *value &= ~(mask << bitshift);
+    *value |= (colorValue & mask) << bitshift;
+}
+
+void makeColorRGB(uint8_t *value, uint8_t red, uint8_t green, uint8_t blue) {
+    uint8_t mask = 0, bitshift = 0;
+
+    // RED
+    mask = 0x07;
+    bitshift = 5;
+    *value &= ~(mask << bitshift);
+    *value |= (red & mask) << bitshift;
+
+    // GREEN
+    mask = 0x07;
+    bitshift = 2;
+    *value &= ~(mask << bitshift);
+    *value |= (green & mask) << bitshift;
+
+    // BLUE
+    mask = 0x03;
+    bitshift = 0;
+    *value &= ~(mask << bitshift);
+    *value |= (blue & mask) << bitshift;
 }
 
 void writeToFile(const STE_FILE *steFile, FILE *file) {
