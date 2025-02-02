@@ -5,7 +5,7 @@ BINDIR = bin
 LIBS = 
 CC = gcc
 CFLAGS = -O0 -g
-CFLAGS += -I$(INCLDIR)
+CFLAGS += -I$(INCLDIR) -lSDL2
 RM = rm -f
 
 OBJDIR = obj

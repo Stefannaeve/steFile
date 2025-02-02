@@ -4,10 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <SDL2/SDL.h>
 
 #define MAGIC_VALUE "STE0"
 #define FILE_EXTENSION ".ste"
 #define LENGTH_OF_EXTENSION 4
+#define SDL2_WIDTH 255
+#define SDL2_HEIGHT 255
 
 typedef struct _STE_FILE {
     char magicValue[5];
@@ -16,6 +19,7 @@ typedef struct _STE_FILE {
 } STE_FILE;
 
 void writeToFile(const STE_FILE *steFile, FILE *file);
+int readSteFile();
 
 int8_t widthAndHeightChecks(unsigned int iHeightLength,
                             unsigned int iWidthLength,
@@ -102,6 +106,55 @@ int createFile(const char **argv) {
 
 
     return iStatus;
+}
+
+int readSteFile() {
+    SDL_Init(SDL_INIT_VIDEO);
+
+    SDL_Window *window = SDL_CreateWindow(
+        "Snake",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        SDL2_WIDTH,
+        SDL2_HEIGHT,
+        SDL_WINDOW_SHOWN
+        );
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Texture *texture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_RGBA32,
+        SDL_TEXTUREACCESS_STREAMING,
+        SDL2_WIDTH, SDL2_HEIGHT);
+    uint32_t pixels[SDL2_WIDTH * SDL2_HEIGHT];
+    int running = 1;
+    while (running) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)){
+            if (event.type == SDL_QUIT) {
+                running = 0;
+            }
+        }
+
+        for (int y = 0; y < SDL2_HEIGHT; y++) {
+            for (int x = 0; x < SDL2_WIDTH; x++) {
+                // Example: Gradient pattern
+                uint8_t r = x;  // Red increases with X
+                uint8_t g = y;  // Green increases with Y
+                uint8_t b = 0;  // Blue is zero
+                pixels[y * SDL2_WIDTH + x] = (r << 24) | (g << 16) | (b << 8) | 0xFF;
+            }
+        }
+
+        // Update texture and render
+        SDL_UpdateTexture(texture, NULL, pixels, SDL2_WIDTH * sizeof(uint32_t));
+        SDL_RenderCopy(renderer, texture, NULL, NULL);
+        SDL_RenderPresent(renderer);
+    }
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return 0;
 }
 
 void writeToFile(const STE_FILE *steFile, FILE *file) {

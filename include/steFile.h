@@ -6,5 +6,6 @@
 #define STEFILE_H
 
 int createFile(const char **argv);
+int readSteFile();
 
 #endif //STEFILE_H
