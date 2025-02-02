@@ -24,16 +24,19 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
 	
 $(TARGET): $(OBJS)
 	$(CC) -o $@ $^ $(CFLAGS)
-	
-valgrind:
-	make
-	valgrind --leak-check=yes --show-leak-kinds=all --track-origins=yes ./$(TARGET) CREA valgrind 16 16
 
-run:
+.PHONY: remove valgrind run clean
+
+remove:
+	 rm -f *.ste
+
+valgrind: remove main
 	make
-	./$(TARGET) CREA something 16 16
-	
-.PHONY: clean
+	valgrind --leak-check=yes --show-leak-kinds=all --track-origins=yes ./$(TARGET) CREA valgrind 8 8
+
+run: remove main
+	make
+	./$(TARGET) CREA run 16 16
 
 clean:
 	$(RM) $(OBJDIR)/*.o *~core $(INCLDIR)/*~ $(TARGET)
