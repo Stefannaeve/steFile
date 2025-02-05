@@ -11,11 +11,11 @@ RM = rm -f
 OBJDIR = obj
 
 # PATHS
-_DEPS = main.h steFile.h
+_DEPS = main.h steFile.h SNLogger.h
 
 DEPS = $(patsubst %, $(INCLDIR)/%, $(_DEPS))
 
-_OBJS = main.o steFile.o
+_OBJS = main.o steFile.o SNLogger.o
 OBJS = $(patsubst %, $(OBJDIR)/%, $(_OBJS))
 
 # RULES
@@ -25,18 +25,26 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
 $(TARGET): $(OBJS)
 	$(CC) -o $@ $^ $(CFLAGS)
 
-.PHONY: remove valgrind run clean
+.PHONY: remove valgrindCREA valgrindREAD runCREA runREAD clean
 
 remove:
-	 rm -f *.ste
+	 rm -f *.ste && rm -f debug.txt
 
-valgrind: remove main
+valgrindCREA: remove main
 	make
 	valgrind --leak-check=yes --show-leak-kinds=all --track-origins=yes ./$(TARGET) CREA valgrind 8 8
 
-run: remove main
+valgrindREAD: remove main
+	make
+	valgrind --leak-check=yes --show-leak-kinds=all --track-origins=yes ./$(TARGET) READ
+
+runCREA: remove main
 	make
 	./$(TARGET) CREA run 16 16
+
+runREAD: remove main
+	make
+	./$(TARGET) READ
 
 clean:
 	$(RM) $(OBJDIR)/*.o *~core $(INCLDIR)/*~ $(TARGET)

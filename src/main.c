@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "../include/SNLogger.h"
 #include "../include/steFile.h"
 
 #define FIRST_ARGUMENT_LENGTH 4
@@ -15,13 +16,16 @@ int main(int argc, const char *argv[]) {
     int iFirstArgLength = 0;
     int iStatus = 0;
 
+    logDebug("1");
+
     if (argc < 2) {
         printf("You have to have more arguments\n");
         return 1;
     }
 
-    iFirstArgLength = strlen(argv[1]);
+    logDebug("2");
 
+    iFirstArgLength = strlen(argv[1]);
 
     if (iFirstArgLength != FIRST_ARGUMENT_LENGTH) {
         printf("Wrong length on first argument\n");
@@ -35,6 +39,7 @@ int main(int argc, const char *argv[]) {
         }
         iStatus = createFile(argv);
     } else if (strncmp(argv[1], READ, 4) == 0) {
+        logDebug("3");
         iStatus = readSteFile();
     } else {
         iStatus = 1;

@@ -6,12 +6,14 @@
 #include <unistd.h>
 #include <SDL2/SDL.h>
 
+#include "../include/SNLogger.h"
+
 #define MAGIC_VALUE "STE0"
 #define FILE_EXTENSION ".ste"
 #define LENGTH_OF_EXTENSION 4
 #define SDL2_WIDTH 1024
 #define SDL2_HEIGHT 1024
-#define PIXEL_DENSITY 256
+#define PIXEL_DENSITY 512
 
 enum COLOR {
     RED,
@@ -30,7 +32,8 @@ enum COLOR_STRENGTH {
 };
 
 typedef struct _PIXEL {
-    uint8_t pixels[4];
+    uint8_t *pixels[4];
+    uint8_t color;
 } PIXEL;
 
 typedef struct _STE_FILE {
@@ -39,6 +42,7 @@ typedef struct _STE_FILE {
     char height;
 } STE_FILE;
 
+void makeColorForPixel(PIXEL *pixel, enum COLOR color, uint8_t colorValue);
 void makeColor(enum COLOR color, uint8_t *value, uint8_t colorValue);
 void makeColorRGB(uint8_t *value, uint8_t red, uint8_t green, uint8_t blue);
 void writeToFile(const STE_FILE *steFile, FILE *file);
@@ -132,100 +136,162 @@ int createFile(const char **argv) {
 }
 
 int readSteFile() {
-    SDL_Init(SDL_INIT_VIDEO);
+     logDebug("4");
+     SDL_Init(SDL_INIT_VIDEO);
+     logDebug("5");
 
-    SDL_Window *window = SDL_CreateWindow(
-        "Snake",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        SDL2_WIDTH,
-        SDL2_HEIGHT,
-        SDL_WINDOW_SHOWN
-        );
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    SDL_Texture *texture = SDL_CreateTexture(
-        renderer,
-        SDL_PIXELFORMAT_RGB332,
-        SDL_TEXTUREACCESS_STREAMING,
-        SDL2_WIDTH, SDL2_HEIGHT);
-    uint8_t rawPixels[SDL2_WIDTH * SDL2_HEIGHT];
-    PIXEL pixels[PIXEL_DENSITY * PIXEL_DENSITY];
-    int pixelPosition = 0;
-    for (int i = 0; i < SDL2_WIDTH; i++) {
-        for (int j = 0; j < SDL2_HEIGHT-1; j++) {
-            if (i % 2 == 0) {
-                if (j % 2 == 0) {
-                    pixels[pixelPosition].pixels[0] = rawPixels[i*j];
-                    pixels[pixelPosition].pixels[1] = rawPixels[i*j+1];
-                    pixels[pixelPosition].pixels[2] = rawPixels[i+1*j];
-                    pixels[pixelPosition].pixels[3] = rawPixels[i+1*j+1];
-                    pixelPosition++;
-                }
-            } else {
-                break;
-            }
-        }
+     SDL_Window *window = SDL_CreateWindow(
+         "Snake",
+         SDL_WINDOWPOS_CENTERED,
+         SDL_WINDOWPOS_CENTERED,
+         SDL2_WIDTH,
+         SDL2_HEIGHT,
+         SDL_WINDOW_SHOWN
+         );
+     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+     SDL_Texture *texture = SDL_CreateTexture(
+         renderer,
+         SDL_PIXELFORMAT_RGB332,
+         SDL_TEXTUREACCESS_STREAMING,
+         SDL2_WIDTH, SDL2_HEIGHT);
+     uint8_t rawPixels[SDL2_WIDTH * SDL2_HEIGHT];
+     PIXEL *pixels = malloc(PIXEL_DENSITY * PIXEL_DENSITY * sizeof(PIXEL));
+     int pixelPosition = 0;
+     for (int y = 0; y < SDL2_WIDTH; y++) {
+         for (int x = 0; x < SDL2_HEIGHT-1; x++) {
+             if (y % 2 == 0) {
+                 if (x % 2 == 0) {
+                     int topLeftIndex = y * SDL2_WIDTH + x;
+                     int topRightIndex = y * SDL2_WIDTH + (x+1);
+                     int bottomLeftIndex = (y + 1) * SDL2_WIDTH + x;
+                     int bottomRightIndex = (y + 1) * SDL2_WIDTH + x + 1;
+
+                     if (y == 2) {
+                         logDebug("hei");
+                     }
+
+                     if (y < 3 && x < 30) {
+                         logDebug("topLeftIndex: %d", topLeftIndex);
+                         logDebug("topRightIndex: %d", topRightIndex);
+                         logDebug("bottomLeftIndex: %d", bottomLeftIndex);
+                         logDebug("bottomRightIndex: %d", bottomRightIndex);
+                     }
+
+
+                     pixels[pixelPosition].pixels[0] = &rawPixels[topLeftIndex];
+                     pixels[pixelPosition].pixels[1] = &rawPixels[topRightIndex];
+                     pixels[pixelPosition].pixels[2] = &rawPixels[bottomLeftIndex];
+                     pixels[pixelPosition].pixels[3] = &rawPixels[bottomRightIndex];
+                     makeColorForPixel(&pixels[pixelPosition],BLUE, LOW);
+
+                     pixelPosition++;
+                 }
+             } else {
+                 break;
+             }
+         }
+     }
+
+     pixelPosition = 0;
+
+    /*
+     for (int y = 0; y < PIXEL_DENSITY; y++) {
+         for (int x = 0; x < PIXEL_DENSITY-1; x++) {
+             if (y % 2 == 0) {
+                 if (x % 2 == 0) {
+                     makeColorForPixel(&pixels[pixelPosition], BLUE, LOW);
+                     pixelPosition++;
+                 }
+             } else {
+                 break;
+             }
+         }
+     }
+     */
+
+
+     /*
+     for (int i = 0; i < PIXEL_DENSITY; i++) {
+         if (i % 2 == 0) {
+             makeColor(RED, &pixels->color, MEDIUM);
+             makeColorForPixel(&pixels[pixelPosition], RED, LOW);
+         }
+     }
+     */
+
+
+     SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGB332);
+     //uint8_t *palette = createPalette(format);
+
+     uint8_t something = 0;
+     uint8_t something2 = 0;
+     makeColor(RED, &something, HIGH);
+     makeColor(GREEN, &something, LOWER);
+     makeColor(BLUE, &something, MAX);
+
+     makeColorRGB(&something2, HIGH, ZERO, ZERO);
+
+     printf("something: %d\n", something);
+     printf("something2: %d\n", something2);
+
+     int running = 1;
+     while (running) {
+         SDL_Event event;
+         while (SDL_PollEvent(&event)){
+             if (event.type == SDL_QUIT) {
+                 running = 0;
+             }
+         }
+
+         /*
+         for (int y = 0; y < SDL2_HEIGHT; y++) {
+             for (int x = 0; x < SDL2_WIDTH; x++) {
+                 uint8_t mappedColor = 0x00;
+
+                 rawPixels[y * SDL2_WIDTH + x] = mappedColor;
+             }
+         }
+         */
+
+         for (int i = 0; i < 4; i++) {
+             for (int j = 0; j < 4; j++) {
+                 rawPixels[((SDL2_HEIGHT/2+i) * SDL2_WIDTH) + SDL2_WIDTH/2 + j] = something2;
+             }
+         }
+
+         /*
+         for (int y = 0; y < PIXEL_DENSITY; y++) {
+             for (int x = 0; x < PIXEL_DENSITY; x++) {
+                 //if (j % 2 == 0) {
+                 int index = y * PIXEL_DENSITY + x;
+                     pixels[index].pixels[0] = something;
+                     pixels[index].pixels[1] = something;
+                     pixels[index].pixels[2] = something;
+                     pixels[index].pixels[3] = something;
+                 //}
+             }
+         }
+         */
+
+         // Update texture and render
+         //SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
+         SDL_UpdateTexture(texture, NULL, pixels, SDL2_WIDTH * sizeof(uint8_t));
+         SDL_RenderCopy(renderer, texture, NULL, NULL);
+         SDL_RenderPresent(renderer);
+     }
+     SDL_DestroyTexture(texture);
+     SDL_DestroyRenderer(renderer);
+     SDL_DestroyWindow(window);
+     SDL_Quit();
+    free(pixels);
+     return 0;
+}
+
+void makeColorForPixel(PIXEL *pixel, enum COLOR color, uint8_t colorValue) {
+    makeColor(color, &pixel->color, colorValue);
+    for (int i = 0; i < 4; i++) {
+        *pixel->pixels[i] = pixel->color;
     }
-
-    SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGB332);
-    //uint8_t *palette = createPalette(format);
-
-    uint8_t something = 0;
-    uint8_t something2 = 0;
-    makeColor(RED, &something, HIGH);
-    makeColor(GREEN, &something, LOWER);
-    makeColor(BLUE, &something, MAX);
-
-    makeColorRGB(&something2, HIGH, ZERO, ZERO);
-
-    printf("something: %d\n", something);
-    printf("something2: %d\n", something2);
-
-    int running = 1;
-    while (running) {
-        SDL_Event event;
-        while (SDL_PollEvent(&event)){
-            if (event.type == SDL_QUIT) {
-                running = 0;
-            }
-        }
-
-        for (int y = 0; y < SDL2_HEIGHT; y++) {
-            for (int x = 0; x < SDL2_WIDTH; x++) {
-                uint8_t mappedColor = 0x00;
-
-                rawPixels[y * SDL2_WIDTH + x] = mappedColor;
-            }
-        }
-
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                rawPixels[((SDL2_HEIGHT/2+i) * SDL2_WIDTH) + SDL2_WIDTH/2 + j] = something2;
-            }
-        }
-
-        for (int i = 0; i < PIXEL_DENSITY; i++) {
-            for (int j = 0; j < PIXEL_DENSITY; j++) {
-                //if (j % 2 == 0) {
-                    pixels[i*j].pixels[0] = something;
-                    pixels[i*j].pixels[1] = something;
-                    pixels[i*j].pixels[2] = something;
-                    pixels[i*j].pixels[3] = something;
-                //}
-            }
-        }
-
-        // Update texture and render
-        SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
-        SDL_UpdateTexture(texture, NULL, pixels, SDL2_WIDTH * sizeof(uint8_t));
-        SDL_RenderCopy(renderer, texture, NULL, NULL);
-        SDL_RenderPresent(renderer);
-    }
-    SDL_DestroyTexture(texture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-    return 0;
 }
 
 void makeColor(enum COLOR color, uint8_t *value, uint8_t colorValue) {
