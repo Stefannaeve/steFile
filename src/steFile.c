@@ -166,23 +166,27 @@ int readSteFile() {
                      int bottomLeftIndex = (y + 1) * SDL2_WIDTH + x;
                      int bottomRightIndex = (y + 1) * SDL2_WIDTH + x + 1;
 
+                     /*
                      if (y == 2) {
                          logDebug("hei");
                      }
+                     */
 
+                     /*
                      if (y < 3 && x < 30) {
                          logDebug("topLeftIndex: %d", topLeftIndex);
                          logDebug("topRightIndex: %d", topRightIndex);
                          logDebug("bottomLeftIndex: %d", bottomLeftIndex);
                          logDebug("bottomRightIndex: %d", bottomRightIndex);
                      }
+                     */
 
 
                      pixels[pixelPosition].pixels[0] = &rawPixels[topLeftIndex];
                      pixels[pixelPosition].pixels[1] = &rawPixels[topRightIndex];
                      pixels[pixelPosition].pixels[2] = &rawPixels[bottomLeftIndex];
                      pixels[pixelPosition].pixels[3] = &rawPixels[bottomRightIndex];
-                     makeColorForPixel(&pixels[pixelPosition],BLUE, LOW);
+                     makeColorForPixel(&pixels[pixelPosition],RED, LOW);
 
                      pixelPosition++;
                  }
@@ -191,6 +195,12 @@ int readSteFile() {
              }
          }
      }
+
+    for (int y = 0; y < PIXEL_DENSITY; y++) {
+        for (int x = 0; x < PIXEL_DENSITY-1; x++) {
+            logDebug("Pixel 0: %d", pixels[x+(y*PIXEL_DENSITY)].pixels[0]);
+        }
+    }
 
      pixelPosition = 0;
 
@@ -274,8 +284,8 @@ int readSteFile() {
          */
 
          // Update texture and render
-         //SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
-         SDL_UpdateTexture(texture, NULL, pixels, SDL2_WIDTH * sizeof(uint8_t));
+         SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
+         //SDL_UpdateTexture(texture, NULL, pixels, SDL2_WIDTH * sizeof(uint8_t));
          SDL_RenderCopy(renderer, texture, NULL, NULL);
          SDL_RenderPresent(renderer);
      }
@@ -291,7 +301,9 @@ void makeColorForPixel(PIXEL *pixel, enum COLOR color, uint8_t colorValue) {
     makeColor(color, &pixel->color, colorValue);
     for (int i = 0; i < 4; i++) {
         *pixel->pixels[i] = pixel->color;
+        //logDebug("pixel %d: %d", i, *pixel->pixels[i]);
     }
+    //logDebug("Color: %d", pixel->color);
 }
 
 void makeColor(enum COLOR color, uint8_t *value, uint8_t colorValue) {
