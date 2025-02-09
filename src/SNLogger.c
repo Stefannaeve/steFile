@@ -11,7 +11,7 @@ void SNLogger(unsigned long ulErrorType, int iLine, const char *szFile, const ch
     static int iCallCounter = 0;
     static FILE *fLogFile;
     if (fLogFile == NULL){
-        fLogFile = fopen("debug.txt", "a");
+        fLogFile = fopen("debug/debug.txt", "a");
         time_t theTime = time(NULL);
         struct tm tm = *localtime(&theTime);
         fprintf(fLogFile, "\nTime: %d-%02d-%02d %02d:%02d:%02d\n", tm.tm_year + 1900, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);

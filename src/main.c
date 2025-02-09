@@ -33,13 +33,11 @@ int main(int argc, const char *argv[]) {
     }
 
     if (strncmp(argv[1], CREA, 4) == 0){
-        if (argc < 5) {
-            printf("You have to have more arguments\n");
+        if (argc < 3) {
             return 1;
         }
         iStatus = createFile(argv);
     } else if (strncmp(argv[1], READ, 4) == 0) {
-        logDebug("3");
         iStatus = readSteFile();
     } else {
         iStatus = 1;

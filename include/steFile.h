@@ -5,6 +5,7 @@
 #ifndef STEFILE_H
 #define STEFILE_H
 
+int createFile2(const char **argv);
 int createFile(const char **argv);
 int readSteFile();
 
