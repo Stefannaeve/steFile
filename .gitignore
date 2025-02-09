@@ -3,4 +3,6 @@
 /obj/*.o
 /cmake-build-debug/
 /.idea/
+/images/*
 debug.txt
+/*.txt

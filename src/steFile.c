@@ -144,13 +144,24 @@ int readTextFile(const char *pszName) {
     int iStatus = 0;
     int position = 0;
     char buffer[BUFFER_SIZE] = {0};
-    FILE *file = fopen(pszName, "r");
+    char *folderName = "rawImageFiles/";
+    int iNameLength = strlen(pszName);
+    int iFolderNameLength = strlen(folderName);
+    char *name = calloc(iNameLength + iFolderNameLength + 1, sizeof(
+        char));
+
+    strncat(name, folderName, iFolderNameLength);
+    strncat(name, pszName, iNameLength);
+
+    FILE *file = fopen(name, "r");
     logDebug("Hei TextFile: 1");
     if (file == NULL) {
         iStatus = 1;
         logDebug("Hei TextFile: 2");
         return iStatus;
     }
+
+
 
     if (fgets(buffer, BUFFER_SIZE, file) == NULL) {
         logError("Buffer is null, failed fgets");
@@ -161,6 +172,7 @@ int readTextFile(const char *pszName) {
 
     logDebug("Buffer: %s", buffer);
 
+    free(name);
     return 0;
 
 }
