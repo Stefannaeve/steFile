@@ -148,33 +148,39 @@ int readTextFile(const char *pszName) {
     int iNameLength = strlen(pszName);
     int iFolderNameLength = strlen(folderName);
     char *name = calloc(iNameLength + iFolderNameLength + 1, sizeof(
-        char));
+                            char));
 
-    strncat(name, folderName, iFolderNameLength);
-    strncat(name, pszName, iNameLength);
-
-    FILE *file = fopen(name, "r");
-    logDebug("Hei TextFile: 1");
-    if (file == NULL) {
+    if (name == NULL) {
         iStatus = 1;
-        logDebug("Hei TextFile: 2");
-        return iStatus;
-    }
+        logError("Failed to allocate memory");
+        printf("Failed to allocate memory\n");
+    } else {
+        strncat(name, folderName, iFolderNameLength);
+        strncat(name, pszName, iNameLength);
 
-
-
-    if (fgets(buffer, BUFFER_SIZE, file) == NULL) {
-        logError("Buffer is null, failed fgets");
-        iStatus = 1;
-        logDebug("Hei TextFile: 3");
-        return iStatus;
+        if (access(name, F_OK) != F_OK) {
+            iStatus = 1;
+            printf("File \"%s\" doesnt exist\n", name);
+        } else {
+            FILE *file = fopen(name, "r");
+            logDebug("Hei TextFile: 1");
+            if (file == NULL) {
+                iStatus = 1;
+                logError("Failed to open file: %s", name);
+                printf("Failed to open file: %s", name);
+            } else {
+                if (fgets(buffer, BUFFER_SIZE, file) == NULL) {
+                    logError("Buffer is null, failed fgets\n");
+                    iStatus = 1;
+                }
+            }
+        }
+        free(name);
     }
 
     logDebug("Buffer: %s", buffer);
 
-    free(name);
-    return 0;
-
+    return iStatus;
 }
 
 int createFile(const char **argv) {
@@ -212,7 +218,11 @@ int createFile(const char **argv) {
     steFile.height = 16; // mmmm
     steFile.width = 16;
 
-    readTextFile(pszName);
+    iStatus = readTextFile(pszName);
+
+    if (iStatus != 0) {
+        return iStatus;
+    }
 
     iLengthOfName = strlen(pszName);
 
