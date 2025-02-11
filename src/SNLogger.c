@@ -1,5 +1,3 @@
-
-
 #include <stdio.h>
 #include <stdarg.h>
 #include "../include/SNLogger.h"
@@ -7,14 +5,15 @@
 
 int globalDebug = TRUE;
 
-void SNLogger(unsigned long ulErrorType, int iLine, const char *szFile, const char *pszFormat, ...){
+void SNLogger(unsigned long ulErrorType, int iLine, const char *szFile, const char *pszFormat, ...) {
     static int iCallCounter = 0;
     static FILE *fLogFile;
-    if (fLogFile == NULL){
+    if (fLogFile == NULL) {
         fLogFile = fopen("debug/debug.txt", "a");
         time_t theTime = time(NULL);
         struct tm tm = *localtime(&theTime);
-        fprintf(fLogFile, "\nTime: %d-%02d-%02d %02d:%02d:%02d\n", tm.tm_year + 1900, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+        fprintf(fLogFile, "\nTime: %d-%02d-%02d %02d:%02d:%02d\n", tm.tm_year + 1900, tm.tm_mon, tm.tm_mday, tm.tm_hour,
+                tm.tm_min, tm.tm_sec);
     }
 
     va_list vaArgumentPointer;
@@ -24,20 +23,20 @@ void SNLogger(unsigned long ulErrorType, int iLine, const char *szFile, const ch
     switch (ulErrorType) {
         case 0:
             pszType = "Error";
-        break;
+            break;
         case 1:
             pszType = "Debug";
-        break;
+            break;
         case 2:
             pszType = "Info";
-        break;
+            break;
         default:
             pszType = "Unknown";
-        break;
+            break;
     }
 
     va_start(vaArgumentPointer, pszFormat);
-    vsnprintf(szOutputString, 256-1, pszFormat, vaArgumentPointer);
+    vsnprintf(szOutputString, 256 - 1, pszFormat, vaArgumentPointer);
     va_end(vaArgumentPointer);
 
     fprintf(fLogFile, "%04i: %s:%s Path: %s:%i\n", iCallCounter, pszType, szOutputString, szFile, iLine);
