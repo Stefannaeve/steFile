@@ -276,9 +276,9 @@ int createFile(const char **argv) {
 }
 
 int readSteFile() {
-    logDebug("4"); // Dårlig log melding
+    logDebug("4");
     SDL_Init(SDL_INIT_VIDEO);
-    logDebug("5"); // ^
+    logDebug("5");
 
     SDL_Window *window = SDL_CreateWindow(
         "Snake",
@@ -329,17 +329,6 @@ int readSteFile() {
         }
     }
 
-
-    /*
-    for (int i = 0; i < PIXEL_DENSITY; i++) {
-        if (i % 2 == 0) {
-            makeColor(RED, &pixels->color, MEDIUM);
-            makeColorForPixel(&pixels[pixelPosition], RED, LOW);
-        }
-    }
-    */
-
-
     SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGB332);
     //uint8_t *palette = createPalette(format);
 
@@ -351,9 +340,6 @@ int readSteFile() {
 
     makeColorRGB(&something2, HIGH, ZERO, ZERO);
 
-    printf("something: %d\n", something);
-    printf("something2: %d\n", something2);
-
     int running = 1;
     while (running) {
         SDL_Event event;
@@ -362,38 +348,6 @@ int readSteFile() {
                 running = 0;
             }
         }
-
-        /*
-        for (int y = 0; y < SDL2_HEIGHT; y++) {
-            for (int x = 0; x < SDL2_WIDTH; x++) {
-                uint8_t mappedColor = 0x00;
-
-                rawPixels[y * SDL2_WIDTH + x] = mappedColor;
-            }
-        }
-        */
-
-        /*
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                rawPixels[((SDL2_HEIGHT / 2 + i) * SDL2_WIDTH) + SDL2_WIDTH / 2 + j] = something2;
-            }
-        }
-        */
-
-        /*
-        for (int y = 0; y < PIXEL_DENSITY; y++) {
-            for (int x = 0; x < PIXEL_DENSITY; x++) {
-                //if (j % 2 == 0) {
-                int index = y * PIXEL_DENSITY + x;
-                    pixels[index].pixels[0] = something;
-                    pixels[index].pixels[1] = something;
-                    pixels[index].pixels[2] = something;
-                    pixels[index].pixels[3] = something;
-                //}
-            }
-        }
-        */
 
         // Update texture and render
         SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
