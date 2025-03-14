@@ -143,6 +143,14 @@ int createFile2(const char **argv) {
 int readTextFile(const char *pszName) {
     int iStatus = 0;
     int position = 0;
+    const char *delimiter = " ";
+    char *width;
+    char *height;
+    long int iWidth = 0;
+    long int iHeight = 0;
+    int iHeightLength = 0;
+    char *endpointer;
+
     char buffer[BUFFER_SIZE] = {0};
     char *folderName = "rawImageFiles/";
     int iNameLength = strlen(pszName);
@@ -173,6 +181,43 @@ int readTextFile(const char *pszName) {
                     logError("Buffer is null, failed fgets\n");
                     iStatus = 1;
                 }
+                width = strtok(buffer, delimiter);
+                printf("%s", width);
+                height = strtok(NULL, delimiter);
+                printf(":%s\n", height);
+                iHeightLength = strlen(height);
+                printf("Length of height: %d\n", iHeightLength);
+
+                height[iHeightLength - 1] = '\0';
+
+                iWidth = strtol(width, &endpointer, 10);
+                if (endpointer == width) {
+                    iStatus = 1;
+                    printf("No digits were found.\n");
+                    return iStatus;
+                }
+                if (*endpointer != '\0') {
+                    iStatus = 1;
+                    printf("Invalid character: %c\n", *endpointer);
+                    return iStatus;
+                }
+
+                printf("The width is: %ld\n", iWidth);
+                // *endpointer = 0;
+
+                iHeight = strtol(height, &endpointer, 10);
+                if (endpointer == width) {
+                    iStatus = 1;
+                    printf("No digits were found.\n");
+                    return iStatus;
+                }
+                if (*endpointer != '\0') {
+                    iStatus = 1;
+                    printf("Invalid character: %c\n", *endpointer);
+                    return iStatus;
+                }
+
+                printf("The height is: %ld\n", iHeight);
             }
         }
         free(name);
@@ -350,8 +395,8 @@ int readSteFile() {
         }
 
         // Update texture and render
-        SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
-        //SDL_UpdateTexture(texture, NULL, pixels, SDL2_WIDTH * sizeof(uint8_t));
+        //SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
+        SDL_UpdateTexture(texture, NULL, pixels, SDL2_WIDTH * sizeof(uint8_t));
         SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
     }
