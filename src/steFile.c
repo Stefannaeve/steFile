@@ -14,6 +14,8 @@
 #define SDL2_WIDTH 1024
 #define SDL2_HEIGHT 1024
 #define PIXEL_DENSITY 512
+#define BLOCK_LENGTH 2
+#define PIXEL_DENSITY2 SDL2_WIDTH/BLOCK_LENGTH
 #define BUFFER_SIZE 96
 
 enum COLOR {
@@ -33,7 +35,7 @@ enum COLOR_STRENGTH {
 };
 
 typedef struct _PIXEL {
-    uint8_t *pixels[4];
+    uint8_t *pixels[BLOCK_LENGTH*BLOCK_LENGTH];
     uint8_t color;
 } PIXEL;
 
@@ -321,9 +323,7 @@ int createFile(const char **argv) {
 }
 
 int readSteFile() {
-    logDebug("4");
     SDL_Init(SDL_INIT_VIDEO);
-    logDebug("5");
 
     SDL_Window *window = SDL_CreateWindow(
         "Snake",
@@ -340,8 +340,9 @@ int readSteFile() {
         SDL_TEXTUREACCESS_STREAMING,
         SDL2_WIDTH, SDL2_HEIGHT);
     uint8_t rawPixels[SDL2_WIDTH * SDL2_HEIGHT];
-    PIXEL *pixels = malloc(PIXEL_DENSITY * PIXEL_DENSITY * sizeof(PIXEL));
+    PIXEL *pixels = malloc(PIXEL_DENSITY2 * PIXEL_DENSITY2 * sizeof(PIXEL));
     int pixelPosition = 0;
+    /*
     for (int y = 0; y < SDL2_WIDTH; y++) {
         for (int x = 0; x < SDL2_HEIGHT - 1; x++) {
             if (y % 2 == 0) {
@@ -364,15 +365,51 @@ int readSteFile() {
             }
         }
     }
+    */
+
+    int iYPlacement = 0;
+    int iXPlacement = 0;
+    int iYBlock = 0;
+    int iXBlock = 0;
+
+    logDebug("Something");
+
+    for (int y = 0; y < SDL2_WIDTH; y += BLOCK_LENGTH) {
+        for (int x = 0; x < SDL2_WIDTH; x += BLOCK_LENGTH) {
+            iYBlock = (y/BLOCK_LENGTH)*PIXEL_DENSITY2;
+            iXBlock = (x/BLOCK_LENGTH);
+            if (y > SDL2_WIDTH-5) {
+                logDebug("iYBlock %d\n", iYBlock);
+                logDebug("iXBlock %d\n", iXBlock);
+            }
+
+            for (int b = 0; b < BLOCK_LENGTH*BLOCK_LENGTH; b++) {
+                iYPlacement = b/BLOCK_LENGTH;
+                iXPlacement = b%BLOCK_LENGTH;
+                if (y > SDL2_WIDTH-1) {
+                    logDebug("iYPlacement: %d\n", iYPlacement);
+                    logDebug("iXPlacement: %d\n", iXPlacement);
+                    logDebug("Raw PixelPosition: %d", (y+iYPlacement)*SDL2_WIDTH*iXPlacement + x);
+                }
+
+                pixels[iYBlock + iXBlock].pixels[b] = &rawPixels[(y+iYPlacement)*SDL2_WIDTH*iXPlacement + x];
+                //makeColorForPixel(&pixels[iYBlock + iXBlock], RED, LOW);
+            }
+            logDebug("Out here")
+        }
+    }
+
 
     pixelPosition = 0;
 
+    /*
     for (int y = 0; y < PIXEL_DENSITY; y = y + 2) {
         for (int x = 0; x < PIXEL_DENSITY - 1; x = x + 2) {
             makeColorForPixel(&pixels[y * PIXEL_DENSITY + x], GREEN, LOW);
             pixelPosition++;
         }
     }
+    */
 
     SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGB332);
     //uint8_t *palette = createPalette(format);
@@ -395,8 +432,8 @@ int readSteFile() {
         }
 
         // Update texture and render
-        //SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
-        SDL_UpdateTexture(texture, NULL, pixels, SDL2_WIDTH * sizeof(uint8_t));
+        SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
+        //SDL_UpdateTexture(texture, NULL, pixels, SDL2_WIDTH * sizeof(uint8_t));
         SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
     }
@@ -410,7 +447,7 @@ int readSteFile() {
 
 void makeColorForPixel(PIXEL *pixel, enum COLOR color, uint8_t colorValue) {
     makeColor(color, &pixel->color, colorValue);
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < BLOCK_LENGTH*BLOCK_LENGTH; i++) {
         *pixel->pixels[i] = pixel->color;
         //logDebug("pixel %d: %d", i, *pixel->pixels[i]);
     }

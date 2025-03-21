@@ -16,8 +16,6 @@ int main(int argc, const char *argv[]) {
     int iFirstArgLength = 0;
     int iStatus = 0;
 
-    logDebug("1");
-    logError("1,5");
 
     if (argc < 2) {
         printf("You have to have more arguments\n");
@@ -26,8 +24,6 @@ int main(int argc, const char *argv[]) {
         printf("Expected format two: ./main READ\n");
         return 1;
     }
-
-    logDebug("2");
 
     iFirstArgLength = strnlen(argv[1], FIRST_ARGUMENT_LENGTH+1);
 
