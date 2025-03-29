@@ -15,7 +15,7 @@
 #define SDL2_HEIGHT 1024
 #define PIXEL_DENSITY 512
 #define BLOCK_LENGTH 2
-#define PIXEL_DENSITY2 SDL2_WIDTH/BLOCK_LENGTH
+#define PIXEL_DENSITY2 (SDL2_WIDTH/BLOCK_LENGTH)
 #define BUFFER_SIZE 96
 
 enum COLOR {
@@ -35,7 +35,7 @@ enum COLOR_STRENGTH {
 };
 
 typedef struct _PIXEL {
-    uint8_t *pixels[BLOCK_LENGTH*BLOCK_LENGTH];
+    uint8_t *pixels[BLOCK_LENGTH * BLOCK_LENGTH];
     uint8_t color;
 } PIXEL;
 
@@ -341,6 +341,11 @@ int readSteFile() {
         SDL2_WIDTH, SDL2_HEIGHT);
     uint8_t rawPixels[SDL2_WIDTH * SDL2_HEIGHT];
     PIXEL *pixels = malloc(PIXEL_DENSITY2 * PIXEL_DENSITY2 * sizeof(PIXEL));
+
+    logDebug("SDL2_WIDTH*SDL_HEIGHT: %d", SDL2_WIDTH*SDL2_HEIGHT);
+    logDebug("PIXEL_DENSITY2*PIXEL_DENSITY2: %d", PIXEL_DENSITY2*PIXEL_DENSITY2);
+
+
     int pixelPosition = 0;
     /*
     for (int y = 0; y < SDL2_WIDTH; y++) {
@@ -371,33 +376,50 @@ int readSteFile() {
     int iXPlacement = 0;
     int iYBlock = 0;
     int iXBlock = 0;
+    int rawPixelPosition = 0;
 
     logDebug("Something");
 
     for (int y = 0; y < SDL2_WIDTH; y += BLOCK_LENGTH) {
+        logDebug("y: %d", y);
         for (int x = 0; x < SDL2_WIDTH; x += BLOCK_LENGTH) {
-            iYBlock = (y/BLOCK_LENGTH)*PIXEL_DENSITY2;
-            iXBlock = (x/BLOCK_LENGTH);
-            if (y > SDL2_WIDTH-5) {
-                logDebug("iYBlock %d\n", iYBlock);
-                logDebug("iXBlock %d\n", iXBlock);
+            if (x < 2) {
+                logDebug("x: %d", x);
+            }
+            iYBlock = (y / BLOCK_LENGTH) * PIXEL_DENSITY2;
+            iXBlock = (x / BLOCK_LENGTH);
+            if (x < 2) {
+                logDebug("iYBlock %d", iYBlock);
+                logDebug("iXBlock %d", iXBlock);
             }
 
-            for (int b = 0; b < BLOCK_LENGTH*BLOCK_LENGTH; b++) {
-                iYPlacement = b/BLOCK_LENGTH;
-                iXPlacement = b%BLOCK_LENGTH;
-                if (y > SDL2_WIDTH-1) {
-                    logDebug("iYPlacement: %d\n", iYPlacement);
-                    logDebug("iXPlacement: %d\n", iXPlacement);
-                    logDebug("Raw PixelPosition: %d", (y+iYPlacement)*SDL2_WIDTH*iXPlacement + x);
+            for (int b = 0; b < BLOCK_LENGTH * BLOCK_LENGTH; b++) {
+                // iYPlacment helps to add pluss one in the y when
+                iYPlacement = b / BLOCK_LENGTH;
+                iXPlacement = b % BLOCK_LENGTH;
+                if (x < 2) {
+                    //logDebug("iYPlacement: %d", iYPlacement);
+                    //logDebug("iXPlacement: %d", iXPlacement);
                 }
 
-                pixels[iYBlock + iXBlock].pixels[b] = &rawPixels[(y+iYPlacement)*SDL2_WIDTH*iXPlacement + x];
-                //makeColorForPixel(&pixels[iYBlock + iXBlock], RED, LOW);
+                logDebug("Raw PixelPosition: %d", (y+iYPlacement)*SDL2_WIDTH*iXPlacement + x);
+
+
+                rawPixelPosition = (y + iYPlacement) * SDL2_WIDTH + iXPlacement + x;
+
+
+                if (x < 2) {
+                    logDebug("b: %d, new Raw PixelPosition: %d", b, rawPixelPosition);
+                }
+
+                pixels[iYBlock + iXBlock].pixels[b] = &rawPixels[rawPixelPosition];
             }
-            logDebug("Out here")
+            //if (y > SDL2_WIDTH - 10) {
+            makeColorForPixel(&pixels[iYBlock + iXBlock], RED, LOW);
+            //}
         }
     }
+    logDebug("Done");
 
 
     pixelPosition = 0;
@@ -446,10 +468,13 @@ int readSteFile() {
 }
 
 void makeColorForPixel(PIXEL *pixel, enum COLOR color, uint8_t colorValue) {
+    //logDebug("Old Color: %d", pixel->color);
     makeColor(color, &pixel->color, colorValue);
-    for (int i = 0; i < BLOCK_LENGTH*BLOCK_LENGTH; i++) {
+    logDebug("New Color: %d", pixel->color);
+    for (int i = 0; i < BLOCK_LENGTH * BLOCK_LENGTH; i++) {
+        //logDebug("i: %d", i);
         *pixel->pixels[i] = pixel->color;
-        //logDebug("pixel %d: %d", i, *pixel->pixels[i]);
+        logDebug("pixel position: %d, color: %d", i, *pixel->pixels[i]);
     }
     //logDebug("Color: %d", pixel->color);
 }
