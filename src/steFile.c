@@ -342,75 +342,22 @@ int readSteFile() {
     uint8_t rawPixels[SDL2_WIDTH * SDL2_HEIGHT];
     PIXEL *pixels = malloc(PIXEL_DENSITY2 * PIXEL_DENSITY2 * sizeof(PIXEL));
 
-    logDebug("SDL2_WIDTH*SDL_HEIGHT: %d", SDL2_WIDTH*SDL2_HEIGHT);
-    logDebug("PIXEL_DENSITY2*PIXEL_DENSITY2: %d", PIXEL_DENSITY2*PIXEL_DENSITY2);
-
-
-    int pixelPosition = 0;
-    /*
-    for (int y = 0; y < SDL2_WIDTH; y++) {
-        for (int x = 0; x < SDL2_HEIGHT - 1; x++) {
-            if (y % 2 == 0) {
-                if (x % 2 == 0) {
-                    const int topLeftIndex = y * SDL2_WIDTH + x;
-                    const int topRightIndex = y * SDL2_WIDTH + (x + 1);
-                    const int bottomLeftIndex = (y + 1) * SDL2_WIDTH + x;
-                    const int bottomRightIndex = (y + 1) * SDL2_WIDTH + x + 1;
-
-                    pixels[pixelPosition].pixels[0] = &rawPixels[topLeftIndex];
-                    pixels[pixelPosition].pixels[1] = &rawPixels[topRightIndex];
-                    pixels[pixelPosition].pixels[2] = &rawPixels[bottomLeftIndex];
-                    pixels[pixelPosition].pixels[3] = &rawPixels[bottomRightIndex];
-                    makeColorForPixel(&pixels[pixelPosition], RED, LOW);
-
-                    pixelPosition++;
-                }
-            } else {
-                break;
-            }
-        }
-    }
-    */
-
     int iYPlacement = 0;
     int iXPlacement = 0;
     int iYBlock = 0;
     int iXBlock = 0;
     int rawPixelPosition = 0;
 
-    logDebug("Something");
-
     for (int y = 0; y < SDL2_WIDTH; y += BLOCK_LENGTH) {
-        logDebug("y: %d", y);
         for (int x = 0; x < SDL2_WIDTH; x += BLOCK_LENGTH) {
-            if (x < 2) {
-                logDebug("x: %d", x);
-            }
             iYBlock = (y / BLOCK_LENGTH) * PIXEL_DENSITY2;
             iXBlock = (x / BLOCK_LENGTH);
-            if (x < 2) {
-                logDebug("iYBlock %d", iYBlock);
-                logDebug("iXBlock %d", iXBlock);
-            }
 
             for (int b = 0; b < BLOCK_LENGTH * BLOCK_LENGTH; b++) {
-                // iYPlacment helps to add pluss one in the y when
                 iYPlacement = b / BLOCK_LENGTH;
                 iXPlacement = b % BLOCK_LENGTH;
-                if (x < 2) {
-                    //logDebug("iYPlacement: %d", iYPlacement);
-                    //logDebug("iXPlacement: %d", iXPlacement);
-                }
-
-                logDebug("Raw PixelPosition: %d", (y+iYPlacement)*SDL2_WIDTH*iXPlacement + x);
-
 
                 rawPixelPosition = (y + iYPlacement) * SDL2_WIDTH + iXPlacement + x;
-
-
-                if (x < 2) {
-                    logDebug("b: %d, new Raw PixelPosition: %d", b, rawPixelPosition);
-                }
 
                 pixels[iYBlock + iXBlock].pixels[b] = &rawPixels[rawPixelPosition];
             }
@@ -421,19 +368,6 @@ int readSteFile() {
             }
         }
     }
-    logDebug("Done");
-
-
-    pixelPosition = 0;
-
-    /*
-    for (int y = 0; y < PIXEL_DENSITY; y = y + 2) {
-        for (int x = 0; x < PIXEL_DENSITY - 1; x = x + 2) {
-            makeColorForPixel(&pixels[y * PIXEL_DENSITY + x], GREEN, LOW);
-            pixelPosition++;
-        }
-    }
-    */
 
     SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGB332);
     //uint8_t *palette = createPalette(format);
@@ -470,15 +404,10 @@ int readSteFile() {
 }
 
 void makeColorForPixel(PIXEL *pixel, enum COLOR color, uint8_t colorValue) {
-    //logDebug("Old Color: %d", pixel->color);
     makeColor(color, &pixel->color, colorValue);
-    logDebug("New Color: %d", pixel->color);
     for (int i = 0; i < BLOCK_LENGTH * BLOCK_LENGTH; i++) {
-        //logDebug("i: %d", i);
         *pixel->pixels[i] = pixel->color;
-        logDebug("pixel position: %d, color: %d", i, *pixel->pixels[i]);
     }
-    //logDebug("Color: %d", pixel->color);
 }
 
 void makeColor(enum COLOR color, uint8_t *value, uint8_t colorValue) {
