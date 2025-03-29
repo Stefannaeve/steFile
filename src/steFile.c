@@ -14,7 +14,7 @@
 #define SDL2_WIDTH 1024
 #define SDL2_HEIGHT 1024
 #define PIXEL_DENSITY 512
-#define BLOCK_LENGTH 2
+#define BLOCK_LENGTH 8
 #define PIXEL_DENSITY2 (SDL2_WIDTH/BLOCK_LENGTH)
 #define BUFFER_SIZE 96
 
@@ -414,9 +414,11 @@ int readSteFile() {
 
                 pixels[iYBlock + iXBlock].pixels[b] = &rawPixels[rawPixelPosition];
             }
-            //if (y > SDL2_WIDTH - 10) {
-            makeColorForPixel(&pixels[iYBlock + iXBlock], RED, LOW);
-            //}
+            if ((iYBlock + iXBlock) % 2 == 0) {
+                makeColorForPixel(&pixels[iYBlock + iXBlock], RED, HIGH);
+            } else {
+                makeColorForPixel(&pixels[iYBlock + iXBlock], GREEN, HIGH);
+            }
         }
     }
     logDebug("Done");
