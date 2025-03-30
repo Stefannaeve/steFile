@@ -14,7 +14,7 @@
 #define SDL2_WIDTH 1024
 #define SDL2_HEIGHT 1024
 #define PIXEL_DENSITY 512
-#define BLOCK_LENGTH 8
+#define BLOCK_LENGTH 16
 #define PIXEL_DENSITY2 (SDL2_WIDTH/BLOCK_LENGTH)
 #define BUFFER_SIZE 96
 
@@ -43,6 +43,7 @@ typedef struct _STE_FILE {
     char magicValue[5];
     char width;
     char height;
+    uint8_t *body;
 } STE_FILE;
 
 void makeColorForPixel(PIXEL *pixel, enum COLOR color, uint8_t colorValue);
@@ -73,6 +74,7 @@ int createFile2(const char **argv) {
     char szCheckIfExtension[5];
     FILE *file;
     STE_FILE steFile;
+    char *strtolRemainder = NULL;
 
     iStatus = widthAndHeightChecks(iHeightLength, iWidthLength, pszHeight, pszWidth);
 
@@ -83,7 +85,8 @@ int createFile2(const char **argv) {
     memcpy(steFile.magicValue, MAGIC_VALUE, 4);
     steFile.magicValue[4] = '\0';
 
-    steFile.height = atoi(pszHeight); // mmmm
+    steFile.height = atoi(pszHeight);
+    steFile.height = (uint8_t) strtol(pszHeight, &strtolRemainder, sizeof(pszHeight));
     steFile.width = atoi(pszWidth);
 
     iLengthOfName = strlen(pszName);
@@ -142,7 +145,7 @@ int createFile2(const char **argv) {
     return iStatus;
 }
 
-int readTextFile(const char *pszName) {
+int readTextFile(STE_FILE *steFile, const char *pszName) {
     int iStatus = 0;
     int position = 0;
     const char *delimiter = " ";
@@ -159,6 +162,7 @@ int readTextFile(const char *pszName) {
     int iFolderNameLength = strlen(folderName);
     char *name = calloc(iNameLength + iFolderNameLength + 1, sizeof(
                             char));
+    uint8_t *bodyBuffer;
 
     if (name == NULL) {
         iStatus = 1;
@@ -173,7 +177,6 @@ int readTextFile(const char *pszName) {
             printf("File \"%s\" doesnt exist\n", name);
         } else {
             FILE *file = fopen(name, "r");
-            logDebug("Hei TextFile: 1");
             if (file == NULL) {
                 iStatus = 1;
                 logError("Failed to open file: %s", name);
@@ -220,13 +223,45 @@ int readTextFile(const char *pszName) {
                 }
 
                 printf("The height is: %ld\n", iHeight);
+
+                steFile->width = iWidth;
+                steFile->height = iHeight;
+
+                steFile->body = calloc((iWidth * iHeight), sizeof(uint8_t));
+                bodyBuffer = calloc(iWidth + 1, sizeof(uint8_t));
+
+                uint8_t character = 0;
+
+                for (int i = 0; i < iHeight; i++) {
+                    memset(bodyBuffer, 0, iWidth + 1);
+                    for (int j = 0; j < iWidth; j++) {
+                        character = getc(file);
+                        //logDebug("%d: character representation: %c", j, character);
+                        if (character == '1') {
+                            character = 0xFF;
+                        } else {
+                            character -= 48;
+                        }
+                        //logDebug("%d, character: %d", j, character);
+                        bodyBuffer[j] = character;
+                    }
+                    //fgets(bodyBuffer, iWidth + 1, file);
+                    //logDebug("buffer%d: %s", i, bodyBuffer);
+                    //strncat(steFile->body, bodyBuffer, iWidth);
+                    for (int j = 0; j < iWidth; j++) {
+                        steFile->body[i * iWidth + j] = bodyBuffer[j];
+                    }
+                    //logDebug("Stefile%d: %s", i, steFile->body);
+                    while ((character = getc(file)) != '\n') {
+                        if (character == EOF || character == 255) {
+                            break;
+                        }
+                    }
+                }
             }
         }
         free(name);
     }
-
-    logDebug("Buffer: %s", buffer);
-
     return iStatus;
 }
 
@@ -257,15 +292,10 @@ int createFile(const char **argv) {
     memcpy(steFile.magicValue, MAGIC_VALUE, 4);
     steFile.magicValue[4] = '\0';
 
-    /*
-    steFile.height = atoi(pszHeight); // mmmm
-    steFile.width = atoi(pszWidth);
-    */
+    //steFile.height = atoi(pszHeight);
+    //steFile.width = atoi(pszWidth);
 
-    steFile.height = 16; // mmmm
-    steFile.width = 16;
-
-    iStatus = readTextFile(pszName);
+    iStatus = readTextFile(&steFile, pszName);
 
     if (iStatus != 0) {
         return iStatus;
@@ -283,7 +313,7 @@ int createFile(const char **argv) {
     }
 
     if (checkIfExtensionValue != 0) {
-        pszFileName = (char *) calloc(iLengthOfName + imageFolderLength + LENGTH_OF_EXTENSION + 1,
+        pszFileName = (char *) calloc(iLengthOfName - 4 + imageFolderLength + LENGTH_OF_EXTENSION + 1,
                                       sizeof(char));
 
         if (pszFileName == NULL) {
@@ -291,9 +321,9 @@ int createFile(const char **argv) {
             printf("Memory allocation issue");
         } else {
             strncat(pszFileName, imageFolder, imageFolderLength);
-            strncat(pszFileName, pszName, iLengthOfName);
+            strncat(pszFileName, pszName, iLengthOfName - 4);
             strncat(pszFileName, FILE_EXTENSION, LENGTH_OF_EXTENSION + 1);
-            pszFileName[iLengthOfName + LENGTH_OF_EXTENSION + imageFolderLength] = '\0';
+            pszFileName[iLengthOfName - 4 + LENGTH_OF_EXTENSION + imageFolderLength] = '\0';
         }
     } else {
         pszFileName = (char *) calloc(iLengthOfName + imageFolderLength + 1,
@@ -459,7 +489,8 @@ void writeToFile(const STE_FILE *steFile, FILE *file) {
     fputs(steFile->magicValue, file);
     fputc(steFile->width, file);
     fputc(steFile->height, file);
-    fputc('\n', file);
+    fwrite(steFile->body, 1, steFile->width * steFile->height, file);
+    //fputs(steFile->body, file);
     fclose(file);
 }
 
