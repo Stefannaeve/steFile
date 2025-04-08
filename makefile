@@ -25,7 +25,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
 $(TARGET): $(OBJS)
 	$(CC) -o $@ $^ $(CFLAGS)
 
-.PHONY: remove valgrindCREA valgrindREAD runCREA runREAD clean
+.PHONY: remove valgrindCREA valgrindREAD runCREA runREAD clean xxd
 
 remove:
 	 rm -f *.ste && rm -f debug.txt
@@ -48,3 +48,7 @@ runREAD: remove main
 
 clean:
 	$(RM) $(OBJDIR)/*.o *~core $(INCLDIR)/*~ $(TARGET)
+
+# g is how many bytes, -u is uppercase hex letters, -c is columns
+xxd:
+	xxd -g 1 -u -c 8 images/snakeHead.ste
