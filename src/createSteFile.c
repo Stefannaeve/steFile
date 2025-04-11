@@ -134,6 +134,8 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
 
     char *name = NULL;
 
+    logInfo("Reading %s", pszName);
+
     if (iNameLength > iFolderNameLength) {
         if (!strncmp(pszName, folderName, iNameLength)) {
             name = allocateMemoryForFolderName(name, iNameLength, iFolderNameLength, folderName, pszName);
@@ -147,7 +149,6 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
             if (name == NULL) {
                 iStatus = 1;
                 logError("Failed to allocate memory");
-                printf("Failed to allocate memory\n");
             } else {
                 strncpy(name, pszName, iNameLength);
                 name[iNameLength] = '\0';
@@ -165,40 +166,38 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
 
     if (access(name, F_OK) != F_OK) {
         iStatus = 1;
-        printf("File \"%s\" doesnt exist\n", name);
+        logError("File \"%s\" doesnt exist", name);
     } else {
         FILE *file = fopen(name, "r");
         if (file == NULL) {
             iStatus = 1;
             logError("Failed to open file: %s", name);
-            printf("Failed to open file: %s", name);
         } else {
             if (fgets(buffer, BUFFER_SIZE, file) == NULL) {
-                logError("Buffer is null, failed fgets\n");
+                logError("Buffer is null, failed fgets");
                 iStatus = 1;
             }
             width = strtok(buffer, delimiter);
-            printf("%s", width);
             height = strtok(NULL, delimiter);
-            printf(":%s\n", height);
             iHeightLength = strlen(height);
-            printf("Length of height: %d\n", iHeightLength);
 
             height[iHeightLength - 1] = '\0';
 
             iWidth = strtol(width, &endpointer, 10);
             if (endpointer == width) {
                 iStatus = 1;
+                logError("No digits were found");
                 printf("No digits were found.\n");
                 return iStatus;
             }
             if (*endpointer != '\0') {
                 iStatus = 1;
+                logError("Invalid character: %c\n", *endpointer);
                 printf("Invalid character: %c\n", *endpointer);
                 return iStatus;
             }
 
-            printf("The width is: %ld\n", iWidth);
+            logInfo("%s width: %ld", name, iWidth);
 
             iHeight = strtol(height, &endpointer, 10);
             if (endpointer == width) {
@@ -212,7 +211,7 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
                 return iStatus;
             }
 
-            printf("The height is: %ld\n", iHeight);
+            logInfo("%s height: %ld", name, iHeight);
 
             steFile->width = iWidth;
             steFile->height = iHeight;
@@ -270,6 +269,5 @@ void writeToFile(const STE_FILE *steFile, FILE *file) {
     fputc(steFile->width, file);
     fputc(steFile->height, file);
     fwrite(steFile->body, 1, steFile->width * steFile->height, file);
-    //fputs(steFile->body, file);
     fclose(file);
 }
