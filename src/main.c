@@ -21,8 +21,8 @@ int main(int argc, const char *argv[]) {
     if (argc < 2) {
         printf("You have to have more arguments\n");
         printf("Expected formats:\n");
-        printf("Expected format one: ./main -c myfile(.txt)\n");
-        printf("Expected format two: ./main -r\n");
+        printf("Expected format one: ./main %s myfile(.txt)\n", CREA);
+        printf("Expected format two: ./main %s\n", READ);
         return 1;
     }
 
@@ -31,15 +31,15 @@ int main(int argc, const char *argv[]) {
     if (iFirstArgLength != FIRST_ARGUMENT_LENGTH) {
         printf("Wrong length on first argument\n");
         printf("Expected formats:\n");
-        printf("Expected format one: -c\n");
-        printf("Expected format two: -r\n");
+        printf("Expected format one: %s\n", CREA);
+        printf("Expected format two: %s\n", READ);
         return 1;
     }
 
     if (strncmp(argv[1], CREA, FIRST_ARGUMENT_LENGTH) == 0){
         if (argc < 3) {
             printf("Wrong arguments\n");
-            printf("Expected format: ./main -c myfile(.txt)\n");
+            printf("Expected format: ./main %s myfile(.txt)\n", CREA);
             return 1;
         }
         iStatus = createFile(argv);
@@ -47,7 +47,7 @@ int main(int argc, const char *argv[]) {
         iStatus = readSteFile();
     } else {
         iStatus = 1;
-        printf("First argument is not in expected format, you have to write \"-c\" for create, or \"-r\" for read\n");
+        printf("First argument is not in expected format, you have to write \"%s\" for create, or \"%s\" for read\n", CREA, READ);
     }
     return iStatus;
 }
