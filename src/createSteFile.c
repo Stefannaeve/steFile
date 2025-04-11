@@ -9,8 +9,10 @@
 #define BUFFER_SIZE 96
 
 int readTextFile(STE_FILE *steFile, const char *pszName);
+
 char *allocateMemoryForFolderName(char *name, int iNameLength, int iFolderNameLength, char *folderName,
                                   const char *pszName);
+
 void writeToFile(const STE_FILE *steFile, FILE *file);
 
 int createFile(const char **argv) {
@@ -26,7 +28,7 @@ int createFile(const char **argv) {
     int rawImageFolderLength = strlen(rawImageFolderName);
     int imageFolderLength = strlen(imageFolder);
     char szCheckIfExtension[5];
-    FILE *file;
+    FILE *file = NULL;
     STE_FILE steFile;
 
     int originalFolderNameLength = strlen(pszName);
@@ -47,17 +49,38 @@ int createFile(const char **argv) {
     if (rawImageFolderLength < originalFolderNameLength) {
         if (strncmp(pszName, rawImageFolderName, rawImageFolderLength) == 0) {
             name = calloc(originalFolderNameLength - rawImageFolderLength + 1, sizeof(char));
+            if (name == NULL) {
+                iStatus = 1;
+                logError("Failed to allocate memory");
+                free(steFile.body);
+                steFile.body = NULL;
+                return iStatus;
+            }
             for (int i = rawImageFolderLength; i < originalFolderNameLength; i++) {
-                name[i-rawImageFolderLength] = pszName[i];
+                name[i - rawImageFolderLength] = pszName[i];
             }
             name[originalFolderNameLength - rawImageFolderLength] = '\0';
         } else {
             name = calloc(originalFolderNameLength + 1, sizeof(char));
+            if (name == NULL) {
+                iStatus = 1;
+                logError("Failed to allocate memory");
+                free(steFile.body);
+                steFile.body = NULL;
+                return iStatus;
+            }
             strncpy(name, pszName, originalFolderNameLength);
             name[originalFolderNameLength] = '\0';
         }
     } else {
         name = calloc(originalFolderNameLength + 1, sizeof(char));
+        if (name == NULL) {
+            iStatus = 1;
+            logError("Failed to allocate memory");
+            free(steFile.body);
+            steFile.body = NULL;
+            return iStatus;
+        }
         strncpy(name, pszName, originalFolderNameLength);
         name[originalFolderNameLength] = '\0';
     }
@@ -100,18 +123,23 @@ int createFile(const char **argv) {
         }
     }
 
-    file = fopen(pszFileName, "w");
-    if (file == NULL) {
-        iStatus = 1;
-        printf("Couldn't open file");
-    } else {
-        writeToFile(&steFile, file);
+    if (iStatus == 0) {
+        file = fopen(pszFileName, "w");
+        if (file == NULL) {
+            iStatus = 1;
+            printf("Couldn't open file");
+        } else {
+            writeToFile(&steFile, file);
+        }
+        printf("Successfully made \"%s\" out of %s\n", pszFileName, name);
+        logInfo("Successfully made \"%s\" out of %s", pszFileName, name);
     }
-    printf("Successfully made \"%s\" out of %s\n", pszFileName, name);
-    logInfo("Successfully made \"%s\" out of %s", pszFileName, name);
-
     free(pszFileName);
+    pszFileName = NULL;
     free(name);
+    name = NULL;
+    free(steFile.body);
+    steFile.body = NULL;
 
 
     return iStatus;
@@ -126,6 +154,8 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
     long int iHeight = 0;
     int iHeightLength = 0;
     char *endpointer;
+
+    FILE *file = NULL;
 
     char buffer[BUFFER_SIZE] = {0};
     char *folderName = "rawImageFiles/";
@@ -150,10 +180,10 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
             if (name == NULL) {
                 iStatus = 1;
                 logError("Failed to allocate memory");
-            } else {
-                strncpy(name, pszName, iNameLength);
-                name[iNameLength] = '\0';
+                return iStatus;
             }
+            strncpy(name, pszName, iNameLength);
+            name[iNameLength] = '\0';
         }
     } else {
         name = allocateMemoryForFolderName(name, iNameLength, iFolderNameLength, folderName, pszName);
@@ -163,13 +193,13 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
         }
     }
 
-    uint8_t *bodyBuffer;
+    uint8_t *bodyBuffer = NULL;
 
     if (access(name, F_OK) != F_OK) {
         iStatus = 1;
         logError("File \"%s\" doesnt exist", name);
     } else {
-        FILE *file = fopen(name, "r");
+        file = fopen(name, "r");
         if (file == NULL) {
             iStatus = 1;
             logError("Failed to open file: %s", name);
@@ -189,62 +219,66 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
                 iStatus = 1;
                 logError("No digits were found");
                 printf("No digits were found.\n");
-                return iStatus;
-            }
-            if (*endpointer != '\0') {
-                iStatus = 1;
-                logError("Invalid character: %c\n", *endpointer);
-                printf("Invalid character: %c\n", *endpointer);
-                return iStatus;
-            }
+            } else {
+                if (*endpointer != '\0') {
+                    iStatus = 1;
+                    logError("Invalid character: %c\n", *endpointer);
+                    printf("Invalid character: %c\n", *endpointer);
+                } else {
+                    logInfo("%s width: %ld", name, iWidth);
 
-            logInfo("%s width: %ld", name, iWidth);
-
-            iHeight = strtol(height, &endpointer, 10);
-            if (endpointer == width) {
-                iStatus = 1;
-                printf("No digits were found.\n");
-                return iStatus;
-            }
-            if (*endpointer != '\0') {
-                iStatus = 1;
-                printf("Invalid character: %c\n", *endpointer);
-                return iStatus;
-            }
-
-            logInfo("%s height: %ld", name, iHeight);
-
-            steFile->width = iWidth;
-            steFile->height = iHeight;
-
-            steFile->body = calloc((iWidth * iHeight), sizeof(uint8_t));
-            bodyBuffer = calloc(iWidth + 1, sizeof(uint8_t));
-
-            uint8_t character = 0;
-
-            for (int i = 0; i < iHeight; i++) {
-                memset(bodyBuffer, 0, iWidth + 1);
-                for (int j = 0; j < iWidth; j++) {
-                    character = getc(file);
-                    if (character == '1') {
-                        character = 0xFF;
+                    iHeight = strtol(height, &endpointer, 10);
+                    if (endpointer == width) {
+                        iStatus = 1;
+                        printf("No digits were found.\n");
                     } else {
-                        character -= 48;
-                    }
-                    bodyBuffer[j] = character;
-                }
-                for (int j = 0; j < iWidth; j++) {
-                    steFile->body[i * iWidth + j] = bodyBuffer[j];
-                }
-                while ((character = getc(file)) != '\n') {
-                    if (character == EOF || character == 255) {
-                        break;
+                        if (*endpointer != '\0') {
+                            iStatus = 1;
+                            printf("Invalid character: %c\n", *endpointer);
+                        } else {
+                            logInfo("%s height: %ld", name, iHeight);
+
+                            steFile->width = iWidth;
+                            steFile->height = iHeight;
+
+                            steFile->body = calloc((iWidth * iHeight), sizeof(uint8_t));
+                            bodyBuffer = calloc(iWidth + 1, sizeof(uint8_t));
+
+                            uint8_t character = 0;
+
+                            for (int i = 0; i < iHeight; i++) {
+                                memset(bodyBuffer, 0, iWidth + 1);
+                                for (int j = 0; j < iWidth; j++) {
+                                    character = getc(file);
+                                    if (character == '1') {
+                                        character = 0xFF;
+                                    } else {
+                                        character -= 48;
+                                    }
+                                    bodyBuffer[j] = character;
+                                }
+                                for (int j = 0; j < iWidth; j++) {
+                                    steFile->body[i * iWidth + j] = bodyBuffer[j];
+                                }
+                                while ((character = getc(file)) != '\n') {
+                                    if (character == EOF || character == 255) {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
+    fclose(file);
+
     free(name);
+    name = NULL;
+    free(bodyBuffer);
+    bodyBuffer = NULL;
+
 
     return iStatus;
 }

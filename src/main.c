@@ -26,7 +26,7 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    iFirstArgLength = strnlen(argv[1], FIRST_ARGUMENT_LENGTH+1);
+    iFirstArgLength = strnlen(argv[1], FIRST_ARGUMENT_LENGTH + 1);
 
     if (iFirstArgLength != FIRST_ARGUMENT_LENGTH) {
         printf("Wrong length on first argument\n");
@@ -36,7 +36,7 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    if (strncmp(argv[1], CREA, FIRST_ARGUMENT_LENGTH) == 0){
+    if (strncmp(argv[1], CREA, FIRST_ARGUMENT_LENGTH) == 0) {
         if (argc < 3) {
             printf("Wrong arguments\n");
             printf("Expected format: ./main %s myfile(.txt)\n", CREA);
@@ -47,7 +47,9 @@ int main(int argc, const char *argv[]) {
         iStatus = readSteFile();
     } else {
         iStatus = 1;
-        printf("First argument is not in expected format, you have to write \"%s\" for create, or \"%s\" for read\n", CREA, READ);
+        printf("First argument is not in expected format, you have to write \"%s\" for create, or \"%s\" for read\n",
+               CREA, READ);
     }
+
     return iStatus;
 }
