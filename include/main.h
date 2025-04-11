@@ -1,6 +1,6 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef __MAIN_H
+#define __MAIN_H
 
 #include "createSteFile.h"
 
-#endif //MAIN_H
+#endif

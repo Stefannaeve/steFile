@@ -1,8 +1,8 @@
 #pragma once
 extern int globalDebug;
 
-#ifndef SNLOGGER_H
-#define SNLOGGER_H
+#ifndef __SNLOGGER_H
+#define __SNLOGGER_H
 
 void SNLogger(unsigned long ulErrorType, int iLine, const char *szFile, const char *pszFormat, ...);
 
@@ -13,4 +13,4 @@ void SNLogger(unsigned long ulErrorType, int iLine, const char *szFile, const ch
 #define logDebug(...) if(globalDebug == TRUE){SNLogger(1, __LINE__, __FILE__, __VA_ARGS__);}
 #define logInfo(...) SNLogger(2, __LINE__, __FILE__, __VA_ARGS__)
 
-#endif //SNLOGGER_H
+#endif

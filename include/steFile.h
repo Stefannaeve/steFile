@@ -2,14 +2,14 @@
 // Created by stefan on 2/1/25.
 //
 
-#ifndef STEFILE_H
-#define STEFILE_H
+#ifndef __STEFILE_H
+#define __STEFILE_H
+
 #include <stdint.h>
 
 #define MAGIC_VALUE "STE0"
 #define FILE_EXTENSION ".ste"
 #define LENGTH_OF_EXTENSION 4
-
 
 typedef struct _STE_FILE {
     char magicValue[5];
@@ -20,4 +20,4 @@ typedef struct _STE_FILE {
 
 int readSteFile();
 
-#endif //STEFILE_H
+#endif
