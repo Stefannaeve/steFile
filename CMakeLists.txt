@@ -10,8 +10,10 @@ include_directories(${SDL2_INCLUDE_DIRS})
 add_executable(steFile
         src/main.c
         include/main.h
-        src/steFile.c
+        src/windowApplicationSteFile.c
         include/steFile.h
+        src/createSteFile.c
+        include/createSteFile.h
         src/SNLogger.c
         include/SNLogger.h)
 

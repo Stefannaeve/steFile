@@ -4,9 +4,20 @@
 
 #ifndef STEFILE_H
 #define STEFILE_H
+#include <stdint.h>
 
-int createFile2(const char **argv);
-int createFile(const char **argv);
+#define MAGIC_VALUE "STE0"
+#define FILE_EXTENSION ".ste"
+#define LENGTH_OF_EXTENSION 4
+
+
+typedef struct _STE_FILE {
+    char magicValue[5];
+    char width;
+    char height;
+    uint8_t *body;
+} STE_FILE;
+
 int readSteFile();
 
 #endif //STEFILE_H

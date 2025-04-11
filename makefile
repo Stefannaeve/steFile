@@ -11,11 +11,11 @@ RM = rm -f
 OBJDIR = obj
 
 # PATHS
-_DEPS = main.h steFile.h SNLogger.h
+_DEPS = main.h steFile.h SNLogger.h createSteFile.h
 
 DEPS = $(patsubst %, $(INCLDIR)/%, $(_DEPS))
 
-_OBJS = main.o steFile.o SNLogger.o
+_OBJS = main.o steFile.o SNLogger.o createSteFile.o
 OBJS = $(patsubst %, $(OBJDIR)/%, $(_OBJS))
 
 # RULES
