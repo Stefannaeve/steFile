@@ -100,8 +100,6 @@ int createFile(const char **argv) {
         }
     }
 
-    logDebug("Images Folder Name: %s", pszFileName);
-
     file = fopen(pszFileName, "w");
     if (file == NULL) {
         iStatus = 1;
@@ -109,6 +107,9 @@ int createFile(const char **argv) {
     } else {
         writeToFile(&steFile, file);
     }
+    printf("Successfully made \"%s\" out of %s\n", pszFileName, name);
+    logInfo("Successfully made \"%s\" out of %s", pszFileName, name);
+
     free(pszFileName);
     free(name);
 
@@ -244,7 +245,6 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
         }
     }
     free(name);
-
 
     return iStatus;
 }
