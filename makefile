@@ -32,11 +32,11 @@ remove:
 
 valgrindCREA: remove main
 	make
-	valgrind --leak-check=yes --show-leak-kinds=all --track-origins=yes ./$(TARGET) CREA valgrind 8 8
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s ./$(TARGET) -c rawImageFiles/snakeHead.txt
 
 valgrindREAD: remove main
 	make
-	valgrind --leak-check=yes --show-leak-kinds=all --track-origins=yes ./$(TARGET) READ
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s ./$(TARGET) -r
 
 runCREA: remove main
 	make
