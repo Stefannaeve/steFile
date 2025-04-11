@@ -4,10 +4,11 @@
 
 #include "../include/SNLogger.h"
 #include "../include/steFile.h"
+#include "../include/main.h"
 
-#define FIRST_ARGUMENT_LENGTH 4
-#define CREA "CREA\0"
-#define READ "READ\0"
+#define FIRST_ARGUMENT_LENGTH 2
+#define CREA "-c"
+#define READ "-r"
 
 // CREA
 // READ
@@ -20,8 +21,8 @@ int main(int argc, const char *argv[]) {
     if (argc < 2) {
         printf("You have to have more arguments\n");
         printf("Expected formats:\n");
-        printf("Expected format one: ./main CREA myfile(.txt)\n");
-        printf("Expected format two: ./main READ\n");
+        printf("Expected format one: ./main -c myfile(.txt)\n");
+        printf("Expected format two: ./main -r\n");
         return 1;
     }
 
@@ -30,23 +31,23 @@ int main(int argc, const char *argv[]) {
     if (iFirstArgLength != FIRST_ARGUMENT_LENGTH) {
         printf("Wrong length on first argument\n");
         printf("Expected formats:\n");
-        printf("Expected format one: CREA\n");
-        printf("Expected format two: READ\n");
+        printf("Expected format one: -c\n");
+        printf("Expected format two: -r\n");
         return 1;
     }
 
-    if (strncmp(argv[1], CREA, 4) == 0){
+    if (strncmp(argv[1], CREA, FIRST_ARGUMENT_LENGTH) == 0){
         if (argc < 3) {
             printf("Wrong arguments\n");
-            printf("Expected format: ./main CREA myfile(.txt)\n");
+            printf("Expected format: ./main -c myfile(.txt)\n");
             return 1;
         }
         iStatus = createFile(argv);
-    } else if (strncmp(argv[1], READ, 4) == 0) {
+    } else if (strncmp(argv[1], READ, FIRST_ARGUMENT_LENGTH) == 0) {
         iStatus = readSteFile();
     } else {
         iStatus = 1;
-        printf("First argument is not in expected format, you have to write \"CREA\", or \"READ\"\n");
+        printf("First argument is not in expected format, you have to write \"-c\" for create, or \"-r\" for read\n");
     }
     return iStatus;
 }
