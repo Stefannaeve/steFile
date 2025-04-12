@@ -15,6 +15,7 @@ add_executable(steFile
         src/createSteFile.c
         include/createSteFile.h
         src/SNLogger.c
-        include/SNLogger.h)
+        include/SNLogger.h
+        include/windowApplicationSteFile.h)
 
 target_link_libraries(steFile ${SDL2_LIBRARIES})

@@ -18,6 +18,4 @@ typedef struct _STE_FILE {
     uint8_t *body;
 } STE_FILE;
 
-int readSteFile();
-
 #endif

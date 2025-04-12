@@ -5,11 +5,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <SDL2/SDL.h>
+#include "../include/windowApplicationSteFile.h"
 
 #define SDL2_WIDTH 1024
 #define SDL2_HEIGHT 1024
 #define PIXEL_DENSITY 512
-#define BLOCK_LENGTH 16
 #define PIXEL_DENSITY2 (SDL2_WIDTH/BLOCK_LENGTH)
 
 enum COLOR {
@@ -27,11 +27,6 @@ enum COLOR_STRENGTH {
     HIGHER,
     MAX
 };
-
-typedef struct _PIXEL {
-    uint8_t *pixels[BLOCK_LENGTH * BLOCK_LENGTH];
-    uint8_t color;
-} PIXEL;
 
 void makeColorForPixel(PIXEL *pixel, enum COLOR color, uint8_t colorValue);
 

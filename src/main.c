@@ -5,6 +5,7 @@
 #include "../include/SNLogger.h"
 #include "../include/steFile.h"
 #include "../include/main.h"
+#include "../include/windowApplicationSteFile.h"
 
 #define FIRST_ARGUMENT_LENGTH 2
 #define CREA "-c"
