@@ -16,9 +16,6 @@ int main(int argc, const char *argv[]) {
     int iFirstArgLength = 0;
     int iStatus = 0;
 
-    printf("What\n");
-
-
     if (argc < 2) {
         printf("You have to have more arguments\n");
         printf("Expected formats:\n");

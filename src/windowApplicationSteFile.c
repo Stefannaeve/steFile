@@ -50,7 +50,6 @@ int8_t widthAndHeightChecks(unsigned int iHeightLength,
                             const char *pszWidth);
 
 int readSteFile() {
-
     int iStatus = 0;
 
     SDL_Init(SDL_INIT_VIDEO);
@@ -125,12 +124,6 @@ int readSteFile() {
         return iStatus;
     }
 
-    for (int y = 0; y < snakeHeadOpen.height; y++) {
-        for (int x = 0; x < snakeHeadOpen.width; x++) {
-            logDebug("pixel[%d][%d]: %d", y, x, snakeHeadOpen.pixel[y][x].color);
-        }
-    }
-
     iStatus = representPictureForSpecificCoordinates(&snakeHeadOpen, 30, 30, pixels);
     if (iStatus != 0) {
         free(snakeHeadOpen.pixel);
@@ -170,19 +163,22 @@ void changeColorsOfPixelsFromPicture(STE_PICTURE *stePicture) {
             }
         }
     }
-
 }
 
 int representPictureForSpecificCoordinates(STE_PICTURE *stePicture, int externalX, int externalY, PIXEL **pixels) {
     int iStatus = 0;
     if (externalX + stePicture->width > PIXEL_DENSITY) {
         iStatus = 1;
-        logError("Width placement set to: %d, which combined with the picture width of %d, would surpass window pixel width of %d", externalX, stePicture->width, PIXEL_DENSITY);
+        logError(
+            "Width placement set to: %d, which combined with the picture width of %d, would surpass window pixel width of %d",
+            externalX, stePicture->width, PIXEL_DENSITY);
         return iStatus;
     }
     if (externalY + stePicture->height > PIXEL_DENSITY) {
         iStatus = 1;
-        logError("Height placement set to: %d, which combined with the picture height of %d, would surpass window pixel height of %d", externalX, stePicture->width, PIXEL_DENSITY);
+        logError(
+            "Height placement set to: %d, which combined with the picture height of %d, would surpass window pixel height of %d",
+            externalX, stePicture->width, PIXEL_DENSITY);
         return iStatus;
     }
     int color = 0;
@@ -218,10 +214,10 @@ int populatePictureFromSteFile(STE_PICTURE *ste_picture, char *fileName) {
         return iStatus;
     }
 
-    fread(&value, sizeof(uint8_t), 1,  file);
+    fread(&value, sizeof(uint8_t), 1, file);
     ste_picture->width = value;
 
-    fread(&value, sizeof(uint8_t), 1,  file);
+    fread(&value, sizeof(uint8_t), 1, file);
     ste_picture->height = value;
 
     numberOfPixels = ste_picture->width * ste_picture->height;
