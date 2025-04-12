@@ -3,6 +3,8 @@
 
 #define BLOCK_LENGTH 16
 
+#include <stdint.h>
+
 int readSteFile();
 
 typedef struct _PIXEL {
@@ -13,7 +15,7 @@ typedef struct _PIXEL {
 typedef struct _STE_PICTURE {
     uint8_t width;
     uint8_t height;
-    PIXEL *pixel;
+    PIXEL **pixel;
 } STE_PICTURE;
 
 #endif

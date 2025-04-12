@@ -1,9 +1,7 @@
-#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "../include/SNLogger.h"
-#include "../include/steFile.h"
 #include "../include/main.h"
 #include "../include/windowApplicationSteFile.h"
 
@@ -17,6 +15,8 @@
 int main(int argc, const char *argv[]) {
     int iFirstArgLength = 0;
     int iStatus = 0;
+
+    printf("What\n");
 
 
     if (argc < 2) {

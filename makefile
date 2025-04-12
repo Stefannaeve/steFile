@@ -11,11 +11,11 @@ RM = rm -f
 OBJDIR = obj
 
 # PATHS
-_DEPS = main.h steFile.h SNLogger.h createSteFile.h
+_DEPS = main.h steFile.h SNLogger.h createSteFile.h windowApplicationSteFile.h
 
 DEPS = $(patsubst %, $(INCLDIR)/%, $(_DEPS))
 
-_OBJS = main.o steFile.o SNLogger.o createSteFile.o
+_OBJS = main.o SNLogger.o createSteFile.o windowApplicationSteFile.o
 OBJS = $(patsubst %, $(OBJDIR)/%, $(_OBJS))
 
 # RULES
@@ -47,7 +47,7 @@ runREAD: remove main
 	./$(TARGET) READ
 
 clean:
-	$(RM) $(OBJDIR)/*.o *~core $(INCLDIR)/*~ $(TARGET)
+	$(RM) $(OBJDIR)/*.o $(TARGET)
 
 # g is how many bytes, -u is uppercase hex letters, -c is columns
 xxd:

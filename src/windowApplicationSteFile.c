@@ -1,5 +1,4 @@
 #include "../include/steFile.h"
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,7 +28,7 @@ enum COLOR_STRENGTH {
     MAX
 };
 
-int populatePictureFromSteFile(STE_PICTURE ste_picture, char *fileName);
+int populatePictureFromSteFile(STE_PICTURE *ste_picture, char *fileName);
 
 void makeColorForPixel(PIXEL *pixel, enum COLOR color, uint8_t colorValue);
 
@@ -67,7 +66,12 @@ int readSteFile() {
         SDL_TEXTUREACCESS_STREAMING,
         SDL2_WIDTH, SDL2_HEIGHT);
     uint8_t rawPixels[SDL2_WIDTH * SDL2_HEIGHT];
-    PIXEL *pixels = malloc(PIXEL_DENSITY * PIXEL_DENSITY * sizeof(PIXEL));
+    //PIXEL *pixels = malloc(PIXEL_DENSITY * PIXEL_DENSITY * sizeof(PIXEL));
+    PIXEL **pixels = calloc(PIXEL_DENSITY, sizeof(PIXEL));
+
+    for (int i = 0; i < PIXEL_DENSITY; i++) {
+        pixels[i] = calloc(PIXEL_DENSITY, sizeof(PIXEL));
+    }
 
     int iYPlacement = 0;
     int iXPlacement = 0;
@@ -77,7 +81,7 @@ int readSteFile() {
 
     for (int y = 0; y < SDL2_WIDTH; y += BLOCK_LENGTH) {
         for (int x = 0; x < SDL2_WIDTH; x += BLOCK_LENGTH) {
-            iYBlock = (y / BLOCK_LENGTH) * PIXEL_DENSITY;
+            iYBlock = (y / BLOCK_LENGTH);
             iXBlock = (x / BLOCK_LENGTH);
 
             for (int b = 0; b < BLOCK_LENGTH * BLOCK_LENGTH; b++) {
@@ -86,12 +90,12 @@ int readSteFile() {
 
                 rawPixelPosition = (y + iYPlacement) * SDL2_WIDTH + iXPlacement + x;
 
-                pixels[iYBlock + iXBlock].pixels[b] = &rawPixels[rawPixelPosition];
+                pixels[iYBlock][iXBlock].pixels[b] = &rawPixels[rawPixelPosition];
             }
             if ((iYBlock + iXBlock) % 2 == 0) {
-                makeColorForPixel(&pixels[iYBlock + iXBlock], RED, HIGH);
+                makeColorForPixel(&pixels[iYBlock][iXBlock], RED, HIGH);
             } else {
-                makeColorForPixel(&pixels[iYBlock + iXBlock], GREEN, HIGH);
+                makeColorForPixel(&pixels[iYBlock][iXBlock], GREEN, HIGH);
             }
         }
     }
@@ -107,6 +111,7 @@ int readSteFile() {
 
     makeColorRGB(&something2, HIGH, ZERO, ZERO);
 
+    /*
     STE_PICTURE snakeHeadOpen = {0};
     char *rawImageName = "rawImageFiles/snakeHeadOpen.txt";
 
@@ -115,6 +120,7 @@ int readSteFile() {
         free(snakeHeadOpen.pixel);
         return iStatus;
     }
+    */
 
 
 
@@ -186,15 +192,24 @@ int populatePictureFromSteFile(STE_PICTURE *ste_picture, char *fileName) {
 
     numberOfPixels = ste_picture->width * ste_picture->height;
 
-    ste_picture->pixel = calloc(numberOfPixels, sizeof(PIXEL));
+    ste_picture->pixel = calloc(ste_picture->height, sizeof(PIXEL));
     if (ste_picture->pixel == NULL) {
         iStatus = 1;
         logError("Memory allocation problem");
         return iStatus;
     }
 
+    for (int i = 0; i < ste_picture->height; i++) {
+        ste_picture->pixel[i] = calloc(ste_picture->width, sizeof(PIXEL));
+        if (ste_picture->pixel[i] == NULL) {
+            iStatus = 1;
+            logError("Memory allocation problem");
+            return iStatus;
+        }
+    }
+
     for (int i = 0; i < numberOfPixels; i++) {
-        fread(&ste_picture->pixel[i].color, sizeof(uint8_t), 1, file);
+        fread(&ste_picture->pixel[i]->color, sizeof(uint8_t), 1, file);
     }
 
     return iStatus;
