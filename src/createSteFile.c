@@ -244,41 +244,46 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
                             steFile->body = calloc((iWidth * iHeight), sizeof(uint8_t));
                             bodyBuffer = calloc(iWidth + 1, sizeof(uint8_t));
 
-                            uint8_t character = 0;
+                            if (bodyBuffer == NULL) {
+                                iStatus = 1;
+                                logError("Failed to allocate memory");
+                                return iStatus;
+                            } else {
+                                uint8_t character = 0;
 
-                            for (int i = 0; i < iHeight; i++) {
-                                memset(bodyBuffer, 0, iWidth + 1);
-                                for (int j = 0; j < iWidth; j++) {
-                                    character = getc(file);
-                                    if (character == '1') {
-                                        character = 0xFF;
-                                    } else {
-                                        character -= 48;
+                                for (int i = 0; i < iHeight; i++) {
+                                    memset(bodyBuffer, 0, iWidth + 1);
+                                    for (int j = 0; j < iWidth; j++) {
+                                        character = getc(file);
+                                        if (character == '1') {
+                                            character = 0xFF;
+                                        } else {
+                                            character -= 48;
+                                        }
+                                        bodyBuffer[j] = character;
                                     }
-                                    bodyBuffer[j] = character;
-                                }
-                                for (int j = 0; j < iWidth; j++) {
-                                    steFile->body[i * iWidth + j] = bodyBuffer[j];
-                                }
-                                while ((character = getc(file)) != '\n') {
-                                    if (character == EOF || character == 255) {
-                                        break;
+                                    for (int j = 0; j < iWidth; j++) {
+                                        steFile->body[i * iWidth + j] = bodyBuffer[j];
+                                    }
+                                    while ((character = getc(file)) != '\n') {
+                                        if (character == EOF || character == 255) {
+                                            break;
+                                        }
                                     }
                                 }
+                                free(bodyBuffer);
+                                bodyBuffer = NULL;
                             }
                         }
                     }
                 }
             }
         }
+        fclose(file);
     }
-    fclose(file);
 
     free(name);
     name = NULL;
-    free(bodyBuffer);
-    bodyBuffer = NULL;
-
 
     return iStatus;
 }
