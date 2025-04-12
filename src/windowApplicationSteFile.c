@@ -28,6 +28,10 @@ enum COLOR_STRENGTH {
     MAX
 };
 
+void changeColorsOfPixelsFromPicture(STE_PICTURE *stePicture);
+
+int representPictureForSpecificCoordinates(STE_PICTURE *stePicture, int externalX, int externalY, PIXEL **pixels);
+
 int populatePictureFromSteFile(STE_PICTURE *ste_picture, char *fileName);
 
 void makeColorForPixel(PIXEL *pixel, enum COLOR color, uint8_t colorValue);
@@ -111,18 +115,29 @@ int readSteFile() {
 
     makeColorRGB(&something2, HIGH, ZERO, ZERO);
 
-    /*
-    STE_PICTURE snakeHeadOpen = {0};
-    char *rawImageName = "rawImageFiles/snakeHeadOpen.txt";
 
-    iStatus = populatePictureFromSteFile(snakeHeadOpen, rawImageName);
+    STE_PICTURE snakeHeadOpen = {0};
+    char *rawImageName = "images/snakeHeadOpen.ste";
+
+    iStatus = populatePictureFromSteFile(&snakeHeadOpen, rawImageName);
     if (iStatus != 0) {
         free(snakeHeadOpen.pixel);
         return iStatus;
     }
-    */
 
+    for (int y = 0; y < snakeHeadOpen.height; y++) {
+        for (int x = 0; x < snakeHeadOpen.width; x++) {
+            logDebug("pixel[%d][%d]: %d", y, x, snakeHeadOpen.pixel[y][x].color);
+        }
+    }
 
+    iStatus = representPictureForSpecificCoordinates(&snakeHeadOpen, 30, 30, pixels);
+    if (iStatus != 0) {
+        free(snakeHeadOpen.pixel);
+        return iStatus;
+    }
+
+    changeColorsOfPixelsFromPicture(&snakeHeadOpen);
 
     int running = 1;
     while (running) {
@@ -147,20 +162,39 @@ int readSteFile() {
     return 0;
 }
 
-int representPictureForSpecificCordinates(STE_PICTURE stePicture, int x, int y, PIXEL *pixel) {
+void changeColorsOfPixelsFromPicture(STE_PICTURE *stePicture) {
+    for (int y = 0; y < stePicture->height; y++) {
+        for (int x = 0; x < stePicture->width; x++) {
+            for (int i = 0; i < BLOCK_LENGTH * BLOCK_LENGTH; i++) {
+                *stePicture->pixel[y][x].pixels[i] = stePicture->pixel[y][x].color;
+            }
+        }
+    }
+
+}
+
+int representPictureForSpecificCoordinates(STE_PICTURE *stePicture, int externalX, int externalY, PIXEL **pixels) {
     int iStatus = 0;
-    if (x + stePicture.width > PIXEL_DENSITY) {
+    if (externalX + stePicture->width > PIXEL_DENSITY) {
         iStatus = 1;
-        logError("Width placement of picture surpasses window");
+        logError("Width placement set to: %d, which combined with the picture width of %d, would surpass window pixel width of %d", externalX, stePicture->width, PIXEL_DENSITY);
         return iStatus;
     }
-    if (y + stePicture.height > PIXEL_DENSITY) {
+    if (externalY + stePicture->height > PIXEL_DENSITY) {
         iStatus = 1;
-        logError("Height placement of picture surpasses window");
+        logError("Height placement set to: %d, which combined with the picture height of %d, would surpass window pixel height of %d", externalX, stePicture->width, PIXEL_DENSITY);
         return iStatus;
     }
+    int color = 0;
 
-
+    for (int y = 0; y < stePicture->height; y++) {
+        for (int x = 0; x < stePicture->width; x++) {
+            color = stePicture->pixel[y][x].color;
+            stePicture->pixel[y][x] = pixels[externalY + y][externalX + x];
+            stePicture->pixel[y][x].color = color;
+        }
+    }
+    return iStatus;
 }
 
 int populatePictureFromSteFile(STE_PICTURE *ste_picture, char *fileName) {
@@ -178,7 +212,7 @@ int populatePictureFromSteFile(STE_PICTURE *ste_picture, char *fileName) {
     }
 
     fread(fromFilePrefix, sizeof(char), LENGTH_OF_EXTENSION, file);
-    if (strncmp(fromFilePrefix, FILE_EXTENSION, LENGTH_OF_EXTENSION) != 0) {
+    if (strncmp(fromFilePrefix, MAGIC_VALUE, LENGTH_OF_EXTENSION) != 0) {
         iStatus = 1;
         logError("%s does not have the right prefix to classify it as a steFile", fileName);
         return iStatus;
@@ -208,8 +242,10 @@ int populatePictureFromSteFile(STE_PICTURE *ste_picture, char *fileName) {
         }
     }
 
-    for (int i = 0; i < numberOfPixels; i++) {
-        fread(&ste_picture->pixel[i]->color, sizeof(uint8_t), 1, file);
+    for (int y = 0; y < ste_picture->height; y++) {
+        for (int x = 0; x < ste_picture->width; x++) {
+            fread(&ste_picture->pixel[y][x].color, sizeof(uint8_t), 1, file);
+        }
     }
 
     return iStatus;
