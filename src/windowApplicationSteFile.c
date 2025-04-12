@@ -7,10 +7,11 @@
 #include <SDL2/SDL.h>
 #include "../include/windowApplicationSteFile.h"
 
+#include "../include/SNLogger.h"
+
 #define SDL2_WIDTH 1024
 #define SDL2_HEIGHT 1024
-#define PIXEL_DENSITY 512
-#define PIXEL_DENSITY2 (SDL2_WIDTH/BLOCK_LENGTH)
+#define PIXEL_DENSITY (SDL2_WIDTH/BLOCK_LENGTH)
 
 enum COLOR {
     RED,
@@ -28,6 +29,8 @@ enum COLOR_STRENGTH {
     MAX
 };
 
+int populatePictureFromSteFile(STE_PICTURE ste_picture, char *fileName);
+
 void makeColorForPixel(PIXEL *pixel, enum COLOR color, uint8_t colorValue);
 
 void makeColor(enum COLOR color, uint8_t *value, uint8_t colorValue);
@@ -44,6 +47,9 @@ int8_t widthAndHeightChecks(unsigned int iHeightLength,
                             const char *pszWidth);
 
 int readSteFile() {
+
+    int iStatus = 0;
+
     SDL_Init(SDL_INIT_VIDEO);
 
     SDL_Window *window = SDL_CreateWindow(
@@ -61,7 +67,7 @@ int readSteFile() {
         SDL_TEXTUREACCESS_STREAMING,
         SDL2_WIDTH, SDL2_HEIGHT);
     uint8_t rawPixels[SDL2_WIDTH * SDL2_HEIGHT];
-    PIXEL *pixels = malloc(PIXEL_DENSITY2 * PIXEL_DENSITY2 * sizeof(PIXEL));
+    PIXEL *pixels = malloc(PIXEL_DENSITY * PIXEL_DENSITY * sizeof(PIXEL));
 
     int iYPlacement = 0;
     int iXPlacement = 0;
@@ -71,7 +77,7 @@ int readSteFile() {
 
     for (int y = 0; y < SDL2_WIDTH; y += BLOCK_LENGTH) {
         for (int x = 0; x < SDL2_WIDTH; x += BLOCK_LENGTH) {
-            iYBlock = (y / BLOCK_LENGTH) * PIXEL_DENSITY2;
+            iYBlock = (y / BLOCK_LENGTH) * PIXEL_DENSITY;
             iXBlock = (x / BLOCK_LENGTH);
 
             for (int b = 0; b < BLOCK_LENGTH * BLOCK_LENGTH; b++) {
@@ -101,6 +107,17 @@ int readSteFile() {
 
     makeColorRGB(&something2, HIGH, ZERO, ZERO);
 
+    STE_PICTURE snakeHeadOpen = {0};
+    char *rawImageName = "rawImageFiles/snakeHeadOpen.txt";
+
+    iStatus = populatePictureFromSteFile(snakeHeadOpen, rawImageName);
+    if (iStatus != 0) {
+        free(snakeHeadOpen.pixel);
+        return iStatus;
+    }
+
+
+
     int running = 1;
     while (running) {
         SDL_Event event;
@@ -122,6 +139,65 @@ int readSteFile() {
     SDL_Quit();
     free(pixels);
     return 0;
+}
+
+int representPictureForSpecificCordinates(STE_PICTURE stePicture, int x, int y, PIXEL *pixel) {
+    int iStatus = 0;
+    if (x + stePicture.width > PIXEL_DENSITY) {
+        iStatus = 1;
+        logError("Width placement of picture surpasses window");
+        return iStatus;
+    }
+    if (y + stePicture.height > PIXEL_DENSITY) {
+        iStatus = 1;
+        logError("Height placement of picture surpasses window");
+        return iStatus;
+    }
+
+
+}
+
+int populatePictureFromSteFile(STE_PICTURE *ste_picture, char *fileName) {
+    int iStatus = 0;
+    uint8_t value = 0;
+    int numberOfPixels = 0;
+    FILE *file;
+    char fromFilePrefix[LENGTH_OF_EXTENSION + 1] = {0};
+
+    file = fopen(fileName, "r");
+    if (file == NULL) {
+        iStatus = 1;
+        logError("Failed to open file %s", fileName);
+        return 1;
+    }
+
+    fread(fromFilePrefix, sizeof(char), LENGTH_OF_EXTENSION, file);
+    if (strncmp(fromFilePrefix, FILE_EXTENSION, LENGTH_OF_EXTENSION) != 0) {
+        iStatus = 1;
+        logError("%s does not have the right prefix to classify it as a steFile", fileName);
+        return iStatus;
+    }
+
+    fread(&value, sizeof(uint8_t), 1,  file);
+    ste_picture->width = value;
+
+    fread(&value, sizeof(uint8_t), 1,  file);
+    ste_picture->height = value;
+
+    numberOfPixels = ste_picture->width * ste_picture->height;
+
+    ste_picture->pixel = calloc(numberOfPixels, sizeof(PIXEL));
+    if (ste_picture->pixel == NULL) {
+        iStatus = 1;
+        logError("Memory allocation problem");
+        return iStatus;
+    }
+
+    for (int i = 0; i < numberOfPixels; i++) {
+        fread(&ste_picture->pixel[i].color, sizeof(uint8_t), 1, file);
+    }
+
+    return iStatus;
 }
 
 void makeColorForPixel(PIXEL *pixel, enum COLOR color, uint8_t colorValue) {
