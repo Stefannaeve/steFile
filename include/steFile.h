@@ -12,9 +12,9 @@
 #define LENGTH_OF_EXTENSION 4
 
 typedef struct _STE_FILE {
-    char magicValue[5];
-    char width;
-    char height;
+    uint8_t magicValue[5];
+    uint8_t width;
+    uint8_t height;
     uint8_t *body;
 } STE_FILE;
 

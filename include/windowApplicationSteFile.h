@@ -1,7 +1,7 @@
 #ifndef WINDOWAPPLICATIONSTEFILE_H
 #define WINDOWAPPLICATIONSTEFILE_H
 
-#define BLOCK_LENGTH 16
+#define BLOCK_LENGTH 8
 
 #include <stdint.h>
 

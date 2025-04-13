@@ -1,12 +1,25 @@
+#include "../include/createSteFile.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <math.h>
 
 #include "../include/SNLogger.h"
 #include "../include/steFile.h"
 
 #define BUFFER_SIZE 96
+
+typedef struct _FOLDERS {
+    char **folders;
+    uint8_t size;
+} FOLDERS;
+
+int getAllFileNames(FOLDERS *folders);
+
+int createFile(char **argv);
 
 int readTextFile(STE_FILE *steFile, const char *pszName);
 
@@ -15,9 +28,32 @@ char *allocateMemoryForFolderName(char *name, int iNameLength, int iFolderNameLe
 
 void writeToFile(const STE_FILE *steFile, FILE *file);
 
-int createFile(const char **argv) {
+int createFolder() {
+    int iStatus = 0;
+    FOLDERS folders;
+
+    iStatus = getAllFileNames(&folders);
+
+    for (int i = 0; i < folders.size; i++) {
+    }
+
+    if (iStatus != 0) {
+        return iStatus;
+    }
+
+    for (int i = 0; i < folders.size; i++) {
+        iStatus = createFile(&folders.folders[i]);
+        if (iStatus != 0) {
+            return iStatus;
+        }
+    }
+
+    return iStatus;
+}
+
+int createFile(char **argv) {
     int8_t iStatus = 0;
-    const char *pszName = argv[2];
+    char *pszName = argv[0];
     const unsigned int iHeightLength;
     const unsigned int iWidthLength;
     unsigned int iLengthOfName = 0;
@@ -43,7 +79,6 @@ int createFile(const char **argv) {
     if (iStatus != 0) {
         return iStatus;
     }
-
 
     // Check if the prefix "rawImageFiles/" is here, if it is, remove it
     if (rawImageFolderLength < originalFolderNameLength) {
@@ -134,6 +169,7 @@ int createFile(const char **argv) {
         printf("Successfully made \"%s\" out of %s\n", pszFileName, name);
         logInfo("Successfully made \"%s\" out of %s", pszFileName, name);
     }
+
     free(pszFileName);
     pszFileName = NULL;
     free(name);
@@ -141,6 +177,56 @@ int createFile(const char **argv) {
     free(steFile.body);
     steFile.body = NULL;
 
+    return iStatus;
+}
+
+int getAllFileNames(FOLDERS *folders) {
+    struct dirent *dirent;
+    DIR *dir;
+    int iStatus = 0;
+
+    char *directoryName = "rawImageFiles";
+
+    if ((dir = opendir(directoryName)) == NULL) {
+        iStatus = 1;
+        logError("Could not open the directory %s", directoryName);
+        return iStatus;
+    }
+
+    char **fileNames;
+    int count = 0;
+
+    while ((dirent = readdir(dir)) != NULL) {
+        int lengthOfFileName = strlen(dirent->d_name);
+        if (strncmp(&dirent->d_name[lengthOfFileName-4], ".txt", 4) == 0) {
+            count++;
+        }
+    }
+
+    if (count == 0) {
+        iStatus = 1;
+        printf("No files in the folder");
+        return iStatus;
+    }
+
+    fileNames = calloc(count, sizeof(char *));
+    folders->size = count;
+    count = 0;
+    rewinddir(dir);
+    while ((dirent = readdir(dir)) != NULL) {
+        int lengthOfFileName = strlen(dirent->d_name);
+        // +2 for / in %s/%s
+        if (lengthOfFileName > 4) {
+            if (strncmp(&dirent->d_name[lengthOfFileName-4], ".txt", 4) == 0) {
+                fileNames[count] = calloc(lengthOfFileName + strlen(directoryName) + 2, sizeof(char));
+                sprintf(fileNames[count], "%s/%s", directoryName, dirent->d_name);
+                fileNames[count][lengthOfFileName + strlen(directoryName) + 1] = '\0';
+            }
+        }
+        count++;
+    }
+
+    folders->folders = fileNames;
 
     return iStatus;
 }
@@ -205,7 +291,7 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
             logError("Failed to open file: %s", name);
         } else {
             if (fgets(buffer, BUFFER_SIZE, file) == NULL) {
-                logError("Buffer is null, failed fgets");
+                logError("Buffer is null, failed fgets in file %s", pszName);
                 iStatus = 1;
             }
             width = strtok(buffer, delimiter);

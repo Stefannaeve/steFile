@@ -40,7 +40,7 @@ int main(int argc, const char *argv[]) {
             printf("Expected format: ./main %s myfile(.txt)\n", CREA);
             return 1;
         }
-        iStatus = createFile(argv);
+        iStatus = createFolder();
     } else if (strncmp(argv[1], READ, FIRST_ARGUMENT_LENGTH) == 0) {
         iStatus = readSteFile();
     } else {
