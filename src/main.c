@@ -12,9 +12,6 @@
 #define CREA "-c"
 #define READ "-r"
 
-// CREA
-// READ
-
 int main(int argc, const char *argv[]) {
     int iFirstArgLength = 0;
     int iStatus = 0;

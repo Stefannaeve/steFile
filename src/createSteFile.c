@@ -48,6 +48,12 @@ int createAllFiles() {
         }
     }
 
+    for (int i = 0; i < files.size; i++) {
+        free(files.files[i]);
+    }
+
+    free(files.files);
+
     return iStatus;
 }
 
@@ -193,7 +199,7 @@ int getAllFileNames(FILES *files) {
         return iStatus;
     }
 
-    char **fileNames;
+    char **fileNames = NULL;
     int count = 0;
 
     while ((dirent = readdir(dir)) != NULL) {
@@ -206,25 +212,42 @@ int getAllFileNames(FILES *files) {
     if (count == 0) {
         iStatus = 1;
         printf("No files in the folder");
-        return iStatus;
-    }
-
-    fileNames = calloc(count, sizeof(char *));
-    files->size = count;
-    count = 0;
-    rewinddir(dir);
-    while ((dirent = readdir(dir)) != NULL) {
-        int lengthOfFileName = strlen(dirent->d_name);
-        // +2 for / in %s/%s
-        if (lengthOfFileName > 4) {
-            if (strncmp(&dirent->d_name[lengthOfFileName-4], ".txt", 4) == 0) {
-                fileNames[count] = calloc(lengthOfFileName + strlen(directoryName) + 2, sizeof(char));
-                sprintf(fileNames[count], "%s/%s", directoryName, dirent->d_name);
-                fileNames[count][lengthOfFileName + strlen(directoryName) + 1] = '\0';
+    } else {
+        fileNames = calloc(count, sizeof(char *));
+        if (fileNames == NULL) {
+            iStatus = 1;
+            logError("Failed to allocate memory");
+        } else {
+            files->size = count;
+            count = 0;
+            rewinddir(dir);
+            while ((dirent = readdir(dir)) != NULL) {
+                int lengthOfFileName = strlen(dirent->d_name);
+                // +2 for / in %s/%s
+                if (lengthOfFileName > 4) {
+                    if (strncmp(&dirent->d_name[lengthOfFileName-4], ".txt", 4) == 0) {
+                        fileNames[count] = calloc(lengthOfFileName + strlen(directoryName) + 2, sizeof(char));
+                        if (fileNames[count] == NULL) {
+                            iStatus = 1;
+                        } else {
+                            sprintf(fileNames[count], "%s/%s", directoryName, dirent->d_name);
+                            fileNames[count][lengthOfFileName + strlen(directoryName) + 1] = '\0';
+                        }
+                    }
+                }
+                if (iStatus != 0) {
+                    for (int i = 0; i < count; i++) {
+                        free(fileNames[i]);
+                    }
+                    free(fileNames);
+                    return iStatus;
+                }
+                count++;
             }
         }
-        count++;
     }
+
+    closedir(dir);
 
     files->files = fileNames;
 
