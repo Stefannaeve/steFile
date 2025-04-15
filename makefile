@@ -4,7 +4,7 @@ SRCDIR = src
 BINDIR = bin
 LIBS = 
 CC = gcc
-CFLAGS = -O0 -g
+CFLAGS = -O2 -g
 CFLAGS += -I$(INCLDIR) -lSDL2
 RM = rm -f
 

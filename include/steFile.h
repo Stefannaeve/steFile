@@ -10,6 +10,7 @@
 #define MAGIC_VALUE "STE0"
 #define FILE_EXTENSION ".ste"
 #define LENGTH_OF_EXTENSION 4
+#define MEMORY_ALLOCATION "Failed to allocate memory\n"
 
 typedef struct _STE_FILE {
     uint8_t magicValue[5];

@@ -92,7 +92,7 @@ int createFile(char *argv) {
             name = calloc(originalFolderNameLength - rawImageFolderLength + 1, sizeof(char));
             if (name == NULL) {
                 iStatus = 1;
-                logError("Failed to allocate memory");
+                logError(MEMORY_ALLOCATION);
                 free(steFile.body);
                 steFile.body = NULL;
                 return iStatus;
@@ -105,7 +105,7 @@ int createFile(char *argv) {
             name = calloc(originalFolderNameLength + 1, sizeof(char));
             if (name == NULL) {
                 iStatus = 1;
-                logError("Failed to allocate memory");
+                logError(MEMORY_ALLOCATION);
                 free(steFile.body);
                 steFile.body = NULL;
                 return iStatus;
@@ -117,7 +117,7 @@ int createFile(char *argv) {
         name = calloc(originalFolderNameLength + 1, sizeof(char));
         if (name == NULL) {
             iStatus = 1;
-            logError("Failed to allocate memory");
+            logError(MEMORY_ALLOCATION);
             free(steFile.body);
             steFile.body = NULL;
             return iStatus;
@@ -143,7 +143,7 @@ int createFile(char *argv) {
 
         if (pszFileName == NULL) {
             iStatus = 1;
-            printf("Memory allocation issue");
+            printf(MEMORY_ALLOCATION);
         } else {
             strncat(pszFileName, imageFolder, imageFolderLength);
             strncat(pszFileName, name, iLengthOfName - 4);
@@ -156,7 +156,7 @@ int createFile(char *argv) {
 
         if (pszFileName == NULL) {
             iStatus = 1;
-            printf("Memory allocation issue");
+            printf(MEMORY_ALLOCATION);
         } else {
             strncat(pszFileName, imageFolder, imageFolderLength);
             strncat(pszFileName, pszName, iLengthOfName);
@@ -216,7 +216,7 @@ int getAllFileNames(FILES *files) {
         fileNames = calloc(count, sizeof(char *));
         if (fileNames == NULL) {
             iStatus = 1;
-            logError("Failed to allocate memory");
+            logError(MEMORY_ALLOCATION);
         } else {
             files->size = count;
             count = 0;
@@ -288,7 +288,7 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
                               char));
             if (name == NULL) {
                 iStatus = 1;
-                logError("Failed to allocate memory");
+                logError(MEMORY_ALLOCATION);
                 return iStatus;
             }
             strncpy(name, pszName, iNameLength);
@@ -307,14 +307,17 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
     if (access(name, F_OK) != F_OK) {
         iStatus = 1;
         logError("File \"%s\" doesnt exist", name);
+        printf("File \"%s\" doesnt exist\n", name);
     } else {
         file = fopen(name, "r");
         if (file == NULL) {
             iStatus = 1;
             logError("Failed to open file: %s", name);
+            printf("Failed to open file: %s\n", name);
         } else {
             if (fgets(buffer, BUFFER_SIZE, file) == NULL) {
                 logError("Buffer is null, failed fgets in file %s", pszName);
+                printf("Buffer is null, failed fgets in file %s\n", pszName);
                 iStatus = 1;
             }
             width = strtok(buffer, delimiter);
@@ -339,13 +342,13 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
                     iHeight = strtol(height, &endpointer, 10);
                     if (endpointer == width) {
                         iStatus = 1;
+                        logError("No digits were found");
                         printf("No digits were found.\n");
                     } else {
                         if (*endpointer != '\0') {
                             iStatus = 1;
                             printf("Invalid character: %c\n", *endpointer);
                         } else {
-                            logInfo("%s height: %ld", name, iHeight);
 
                             steFile->width = iWidth;
                             steFile->height = iHeight;
@@ -355,7 +358,8 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
 
                             if (bodyBuffer == NULL) {
                                 iStatus = 1;
-                                logError("Failed to allocate memory");
+                                logError(MEMORY_ALLOCATION);
+                                printf(MEMORY_ALLOCATION);
                                 return iStatus;
                             } else {
                                 uint8_t character = 0;
@@ -402,8 +406,8 @@ char *allocateMemoryForFolderName(char *name, int iNameLength, int iFolderNameLe
     name = calloc(iNameLength + iFolderNameLength + 1, sizeof(
                       char));
     if (name == NULL) {
-        logError("Failed to allocate memory");
-        printf("Failed to allocate memory\n");
+        logError(MEMORY_ALLOCATION);
+        printf(MEMORY_ALLOCATION);
     } else {
         strncat(name, folderName, iFolderNameLength);
         strncat(name, pszName, iNameLength);

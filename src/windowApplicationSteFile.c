@@ -28,6 +28,8 @@ enum COLOR_STRENGTH {
     MAX
 };
 
+void freePixels(PIXEL **pixels);
+
 void changeColorsOfPixelsFromPicture(STE_PICTURE *stePicture);
 
 int representPictureForSpecificCoordinates(STE_PICTURE *stePicture, int externalX, int externalY, PIXEL **pixels);
@@ -69,7 +71,6 @@ int readSteFile() {
         SDL_TEXTUREACCESS_STREAMING,
         SDL2_WIDTH, SDL2_HEIGHT);
     uint8_t rawPixels[SDL2_WIDTH * SDL2_HEIGHT];
-    //PIXEL *pixels = malloc(PIXEL_DENSITY * PIXEL_DENSITY * sizeof(PIXEL));
     PIXEL **pixels = calloc(PIXEL_DENSITY, sizeof(PIXEL));
 
     for (int i = 0; i < PIXEL_DENSITY; i++) {
@@ -120,39 +121,45 @@ int readSteFile() {
 
     iStatus = populatePictureFromSteFile(&snakeHeadOpen, rawImageName);
     if (iStatus != 0) {
-        free(snakeHeadOpen.pixel);
-        return iStatus;
-    }
 
-    iStatus = representPictureForSpecificCoordinates(&snakeHeadOpen, 30, 30, pixels);
-    if (iStatus != 0) {
-        free(snakeHeadOpen.pixel);
-        return iStatus;
-    }
+    } else {
+        iStatus = representPictureForSpecificCoordinates(&snakeHeadOpen, 30, 30, pixels);
+        if (iStatus != 0) {
 
-    changeColorsOfPixelsFromPicture(&snakeHeadOpen);
+        } else {
+            changeColorsOfPixelsFromPicture(&snakeHeadOpen);
 
-    int running = 1;
-    while (running) {
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = 0;
+            int running = 1;
+            while (running) {
+                SDL_Event event;
+                while (SDL_PollEvent(&event)) {
+                    if (event.type == SDL_QUIT) {
+                        running = 0;
+                    }
+                }
+
+                // Update texture and render
+                SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
+                //SDL_UpdateTexture(texture, NULL, pixels, SDL2_WIDTH * sizeof(uint8_t));
+                SDL_RenderCopy(renderer, texture, NULL, NULL);
+                SDL_RenderPresent(renderer);
             }
         }
-
-        // Update texture and render
-        SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
-        //SDL_UpdateTexture(texture, NULL, pixels, SDL2_WIDTH * sizeof(uint8_t));
-        SDL_RenderCopy(renderer, texture, NULL, NULL);
-        SDL_RenderPresent(renderer);
     }
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+    free(snakeHeadOpen.pixel);
+    freePixels(pixels);
+    return iStatus;
+}
+
+void freePixels(PIXEL **pixels) {
+    for (int i = 0; i < PIXEL_DENSITY; i++) {
+        free(pixels[i]);
+    }
     free(pixels);
-    return 0;
 }
 
 void changeColorsOfPixelsFromPicture(STE_PICTURE *stePicture) {
@@ -225,7 +232,7 @@ int populatePictureFromSteFile(STE_PICTURE *ste_picture, char *fileName) {
     ste_picture->pixel = calloc(ste_picture->height, sizeof(PIXEL));
     if (ste_picture->pixel == NULL) {
         iStatus = 1;
-        logError("Memory allocation problem");
+        logError(MEMORY_ALLOCATION);
         return iStatus;
     }
 
@@ -233,7 +240,7 @@ int populatePictureFromSteFile(STE_PICTURE *ste_picture, char *fileName) {
         ste_picture->pixel[i] = calloc(ste_picture->width, sizeof(PIXEL));
         if (ste_picture->pixel[i] == NULL) {
             iStatus = 1;
-            logError("Memory allocation problem");
+            logError(MEMORY_ALLOCATION);
             return iStatus;
         }
     }

@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../include/SNLogger.h"
 #include "../include/main.h"
 
 #include <stdlib.h>
@@ -13,13 +12,13 @@
 #define READ "-r"
 
 int main(int argc, const char *argv[]) {
-    int iFirstArgLength = 0;
-    int iStatus = 0;
+    uint8_t iFirstArgLength = 0;
+    uint8_t iStatus = 0;
 
     if (argc < 2) {
         printf("You have to have more arguments\n");
         printf("Expected formats:\n");
-        printf("Expected format one: ./main %s myfile(.txt)\n", CREA);
+        printf("Expected format one: ./main %s (myfile(.txt))\n", CREA);
         printf("Expected format two: ./main %s\n", READ);
         return 1;
     }
