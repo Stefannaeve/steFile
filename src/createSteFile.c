@@ -12,14 +12,14 @@
 
 #define BUFFER_SIZE 96
 
-typedef struct _FOLDERS {
-    char **folders;
+typedef struct _FILES {
+    char **files;
     uint8_t size;
-} FOLDERS;
+} FILES;
 
-int getAllFileNames(FOLDERS *folders);
+int getAllFileNames(FILES *files);
 
-int createFile(char **argv);
+int createFile(char *argv);
 
 int readTextFile(STE_FILE *steFile, const char *pszName);
 
@@ -28,21 +28,21 @@ char *allocateMemoryForFolderName(char *name, int iNameLength, int iFolderNameLe
 
 void writeToFile(const STE_FILE *steFile, FILE *file);
 
-int createFolder() {
+int createAllFiles() {
     int iStatus = 0;
-    FOLDERS folders;
+    FILES files;
 
-    iStatus = getAllFileNames(&folders);
+    iStatus = getAllFileNames(&files);
 
-    for (int i = 0; i < folders.size; i++) {
+    for (int i = 0; i < files.size; i++) {
     }
 
     if (iStatus != 0) {
         return iStatus;
     }
 
-    for (int i = 0; i < folders.size; i++) {
-        iStatus = createFile(&folders.folders[i]);
+    for (int i = 0; i < files.size; i++) {
+        iStatus = createFile(files.files[i]);
         if (iStatus != 0) {
             return iStatus;
         }
@@ -51,9 +51,9 @@ int createFolder() {
     return iStatus;
 }
 
-int createFile(char **argv) {
+int createFile(char *argv) {
     int8_t iStatus = 0;
-    char *pszName = argv[0];
+    char *pszName = argv;
     const unsigned int iHeightLength;
     const unsigned int iWidthLength;
     unsigned int iLengthOfName = 0;
@@ -180,7 +180,7 @@ int createFile(char **argv) {
     return iStatus;
 }
 
-int getAllFileNames(FOLDERS *folders) {
+int getAllFileNames(FILES *files) {
     struct dirent *dirent;
     DIR *dir;
     int iStatus = 0;
@@ -210,7 +210,7 @@ int getAllFileNames(FOLDERS *folders) {
     }
 
     fileNames = calloc(count, sizeof(char *));
-    folders->size = count;
+    files->size = count;
     count = 0;
     rewinddir(dir);
     while ((dirent = readdir(dir)) != NULL) {
@@ -226,7 +226,7 @@ int getAllFileNames(FOLDERS *folders) {
         count++;
     }
 
-    folders->folders = fileNames;
+    files->files = fileNames;
 
     return iStatus;
 }

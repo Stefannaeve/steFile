@@ -3,6 +3,9 @@
 
 #include "../include/SNLogger.h"
 #include "../include/main.h"
+
+#include <stdlib.h>
+
 #include "../include/windowApplicationSteFile.h"
 
 #define FIRST_ARGUMENT_LENGTH 2
@@ -35,12 +38,17 @@ int main(int argc, const char *argv[]) {
     }
 
     if (strncmp(argv[1], CREA, FIRST_ARGUMENT_LENGTH) == 0) {
+        char *argument = NULL;
+        char sizeOfArgument = 0;
         if (argc < 3) {
-            printf("Wrong arguments\n");
-            printf("Expected format: ./main %s myfile(.txt)\n", CREA);
-            return 1;
+            iStatus = createAllFiles();
+        } else {
+            sizeOfArgument = strlen(argv[2]);
+            argument = calloc(sizeOfArgument + 1, sizeof(char));
+            strncpy(argument, argv[2], sizeOfArgument);
+            argument[sizeOfArgument] = '\0';
+            iStatus = createFile(argument);
         }
-        iStatus = createFolder();
     } else if (strncmp(argv[1], READ, FIRST_ARGUMENT_LENGTH) == 0) {
         iStatus = readSteFile();
     } else {
