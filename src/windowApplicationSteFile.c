@@ -6,6 +6,8 @@
 #include <SDL2/SDL.h>
 #include "../include/windowApplicationSteFile.h"
 
+#include <time.h>
+
 #include "../include/SNLogger.h"
 
 #define SDL2_WIDTH 1024
@@ -117,9 +119,16 @@ int readSteFile() {
 
 
     STE_PICTURE snakeHeadOpen = {0};
-    char *rawImageName = "images/snakeHeadOpen.ste";
+    STE_PICTURE snakeHeadClosed = {0};
+    STE_PICTURE snakeHeadSemiOpen = {0};
+    char *imageName = "images/snakeHeadOpen.ste";
+    char *imageName2 = "images/snakeHeadClosed.ste";
+    char *imageName3 = "images/snakeHeadSemiOpen.ste";
 
-    iStatus = populatePictureFromSteFile(&snakeHeadOpen, rawImageName);
+    iStatus = populatePictureFromSteFile(&snakeHeadOpen, imageName);
+    iStatus = populatePictureFromSteFile(&snakeHeadClosed, imageName2);
+    iStatus = populatePictureFromSteFile(&snakeHeadSemiOpen, imageName3);
+
     if (iStatus != 0) {
 
     } else {
@@ -130,6 +139,11 @@ int readSteFile() {
             changeColorsOfPixelsFromPicture(&snakeHeadOpen);
 
             int running = 1;
+            uint8_t placement = 0;
+            struct timespec timespec = {0};
+            timespec.tv_sec = 110 / 1000;
+            timespec.tv_nsec = (110 % 1000) * 1000000;
+            int xPosition = 0;
             while (running) {
                 SDL_Event event;
                 while (SDL_PollEvent(&event)) {
@@ -137,6 +151,27 @@ int readSteFile() {
                         running = 0;
                     }
                 }
+                nanosleep(&timespec, NULL);
+                if (placement == 0) {
+                    iStatus = representPictureForSpecificCoordinates(&snakeHeadOpen, xPosition, 30, pixels);
+                    changeColorsOfPixelsFromPicture(&snakeHeadOpen);
+                } else if (placement == 1 || placement == 3) {
+                    iStatus = representPictureForSpecificCoordinates(&snakeHeadSemiOpen, xPosition, 30, pixels);
+                    changeColorsOfPixelsFromPicture(&snakeHeadSemiOpen);
+
+                }else {
+                    iStatus = representPictureForSpecificCoordinates(&snakeHeadClosed, xPosition, 30, pixels);
+                    changeColorsOfPixelsFromPicture(&snakeHeadClosed);
+                }
+                if (xPosition + snakeHeadSemiOpen.width < PIXEL_DENSITY) {
+                    xPosition++;
+                }
+                placement += 1;
+                if (placement > 3) {
+                    placement = 0;
+                }
+                logDebug("Placement: %d", placement);
+
 
                 // Update texture and render
                 SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
