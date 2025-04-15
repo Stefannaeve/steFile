@@ -2,9 +2,10 @@ TARGET = main
 INCLDIR = ./include
 SRCDIR = src
 BINDIR = bin
+IMAGEDIR = images
 LIBS = 
 CC = gcc
-CFLAGS = -O2 -g
+CFLAGS = -O0 -g
 CFLAGS += -I$(INCLDIR) -lSDL2
 RM = rm -f
 
@@ -47,8 +48,8 @@ runREAD: remove main
 	./$(TARGET) READ
 
 clean:
-	$(RM) $(OBJDIR)/*.o $(TARGET)
+	$(RM) $(OBJDIR)/*.o $(IMAGEDIR)/*.ste $(TARGET)
 
 # g is how many bytes, -u is uppercase hex letters, -c is columns
 xxd:
-	xxd -g 1 -u -c 8 images/snakeHead.ste
+	xxd -g 1 -u -c 8 $(IMAGEDIR)/snakeHead.ste
