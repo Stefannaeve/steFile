@@ -19,8 +19,6 @@ typedef struct _FILES {
 
 int getAllFileNames(FILES *files);
 
-int createFile(char *argv);
-
 int readTextFile(STE_FILE *steFile, const char *pszName);
 
 char *allocateMemoryForFolderName(char *name, int iNameLength, int iFolderNameLength, char *folderName,
@@ -204,13 +202,14 @@ int getAllFileNames(FILES *files) {
 
     while ((dirent = readdir(dir)) != NULL) {
         int lengthOfFileName = strlen(dirent->d_name);
-        if (strncmp(&dirent->d_name[lengthOfFileName-4], ".txt", 4) == 0) {
+        if (lengthOfFileName > 4 && strncmp(&dirent->d_name[lengthOfFileName-4], ".txt", 4) == 0) {
             count++;
         }
     }
 
     if (count == 0) {
         iStatus = 1;
+        logInfo("No files in the folder");
         printf("No files in the folder");
     } else {
         fileNames = calloc(count, sizeof(char *));

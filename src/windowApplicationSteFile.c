@@ -170,8 +170,6 @@ int readSteFile() {
                 if (placement > 3) {
                     placement = 0;
                 }
-                logDebug("Placement: %d", placement);
-
 
                 // Update texture and render
                 SDL_UpdateTexture(texture, NULL, rawPixels, SDL2_WIDTH * sizeof(uint8_t));
