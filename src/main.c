@@ -1,11 +1,8 @@
 #include <stdio.h>
 #include <string.h>
-
-#include "../include/main.h"
-
 #include <stdlib.h>
 
-#include "../include/SNLogger.h"
+#include "../include/main.h"
 #include "../include/windowApplicationSteFile.h"
 
 #define FIRST_ARGUMENT_LENGTH 2

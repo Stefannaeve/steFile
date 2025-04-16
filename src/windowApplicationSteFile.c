@@ -1,13 +1,12 @@
-#include "../include/steFile.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <SDL2/SDL.h>
-#include "../include/windowApplicationSteFile.h"
-
 #include <time.h>
 
+#include "../include/windowApplicationSteFile.h"
+#include "../include/steFile.h"
 #include "../include/SNLogger.h"
 
 #define SDL2_WIDTH 1024

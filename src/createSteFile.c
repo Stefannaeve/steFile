@@ -1,12 +1,10 @@
-#include "../include/createSteFile.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <dirent.h>
-#include <math.h>
 
+#include "../include/createSteFile.h"
 #include "../include/SNLogger.h"
 #include "../include/steFile.h"
 
@@ -17,14 +15,14 @@ typedef struct _FILES {
     uint8_t size;
 } FILES;
 
-int getAllFileNames(FILES *files);
+static int getAllFileNames(FILES *files);
 
-int readTextFile(STE_FILE *steFile, const char *pszName);
+static int readTextFile(STE_FILE *steFile, const char *pszName);
 
-char *allocateMemoryForFolderName(char *name, int iNameLength, int iFolderNameLength, char *folderName,
+static char *allocateMemoryForFolderName(char *name, int iNameLength, int iFolderNameLength, char *folderName,
                                   const char *pszName);
 
-void writeToFile(const STE_FILE *steFile, FILE *file);
+static void writeToFile(const STE_FILE *steFile, FILE *file);
 
 int createAllFiles() {
     int iStatus = 0;
@@ -58,8 +56,6 @@ int createAllFiles() {
 int createFile(char *argv) {
     int8_t iStatus = 0;
     char *pszName = argv;
-    const unsigned int iHeightLength;
-    const unsigned int iWidthLength;
     unsigned int iLengthOfName = 0;
     unsigned int checkIfExtensionValue = 1;
     char *pszFileName;
@@ -141,6 +137,7 @@ int createFile(char *argv) {
 
         if (pszFileName == NULL) {
             iStatus = 1;
+            logError(MEMORY_ALLOCATION);
             printf(MEMORY_ALLOCATION);
         } else {
             strncat(pszFileName, imageFolder, imageFolderLength);
@@ -154,9 +151,10 @@ int createFile(char *argv) {
 
         if (pszFileName == NULL) {
             iStatus = 1;
+            logError(MEMORY_ALLOCATION);
             printf(MEMORY_ALLOCATION);
         } else {
-            strncat(pszFileName, imageFolder, imageFolderLength);
+            strncpy(pszFileName, imageFolder, imageFolderLength);
             strncat(pszFileName, pszName, iLengthOfName);
             pszFileName[iLengthOfName + imageFolderLength] = '\0';
         }
@@ -166,6 +164,7 @@ int createFile(char *argv) {
         file = fopen(pszFileName, "w");
         if (file == NULL) {
             iStatus = 1;
+            logError("Couldn't open file");
             printf("Couldn't open file");
         } else {
             writeToFile(&steFile, file);
@@ -184,7 +183,15 @@ int createFile(char *argv) {
     return iStatus;
 }
 
-int getAllFileNames(FILES *files) {
+static void writeToFile(const STE_FILE *steFile, FILE *file) {
+    fputs(steFile->magicValue, file);
+    fputc(steFile->width, file);
+    fputc(steFile->height, file);
+    fwrite(steFile->body, 1, steFile->width * steFile->height, file);
+    fclose(file);
+}
+
+static int getAllFileNames(FILES *files) {
     struct dirent *dirent;
     DIR *dir;
     int iStatus = 0;
@@ -232,6 +239,9 @@ int getAllFileNames(FILES *files) {
                             sprintf(fileNames[count], "%s/%s", directoryName, dirent->d_name);
                             fileNames[count][lengthOfFileName + strlen(directoryName) + 1] = '\0';
                         }
+                        if (iStatus == 0) {
+                            count++;
+                        }
                     }
                 }
                 if (iStatus != 0) {
@@ -241,7 +251,6 @@ int getAllFileNames(FILES *files) {
                     free(fileNames);
                     return iStatus;
                 }
-                count++;
             }
         }
     }
@@ -253,7 +262,7 @@ int getAllFileNames(FILES *files) {
     return iStatus;
 }
 
-int readTextFile(STE_FILE *steFile, const char *pszName) {
+static int readTextFile(STE_FILE *steFile, const char *pszName) {
     int iStatus = 0;
     const char *delimiter = " ";
     char *width;
@@ -276,7 +285,7 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
     logInfo("Reading %s", pszName);
 
     if (iNameLength > iFolderNameLength) {
-        if (!strncmp(pszName, folderName, iNameLength)) {
+        if (!strncmp(pszName, folderName, iFolderNameLength)) {
             name = allocateMemoryForFolderName(name, iNameLength, iFolderNameLength, folderName, pszName);
             if (name == NULL) {
                 iStatus = 1;
@@ -346,6 +355,7 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
                     } else {
                         if (*endpointer != '\0') {
                             iStatus = 1;
+                            logError("Invalid character: %c\n", *endpointer);
                             printf("Invalid character: %c\n", *endpointer);
                         } else {
 
@@ -400,7 +410,7 @@ int readTextFile(STE_FILE *steFile, const char *pszName) {
     return iStatus;
 }
 
-char *allocateMemoryForFolderName(char *name, int iNameLength, int iFolderNameLength, char *folderName,
+static char *allocateMemoryForFolderName(char *name, int iNameLength, int iFolderNameLength, char *folderName,
                                   const char *pszName) {
     name = calloc(iNameLength + iFolderNameLength + 1, sizeof(
                       char));
@@ -413,12 +423,4 @@ char *allocateMemoryForFolderName(char *name, int iNameLength, int iFolderNameLe
         name[iNameLength + iFolderNameLength] = '\0';
     }
     return name;
-}
-
-void writeToFile(const STE_FILE *steFile, FILE *file) {
-    fputs(steFile->magicValue, file);
-    fputc(steFile->width, file);
-    fputc(steFile->height, file);
-    fwrite(steFile->body, 1, steFile->width * steFile->height, file);
-    fclose(file);
 }
