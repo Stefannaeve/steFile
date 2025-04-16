@@ -1,4 +1,5 @@
 /*.ste
+/lib/*.a
 /main
 /obj/*.o
 /cmake-build-debug/
