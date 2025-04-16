@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 
+#include "../include/SNLogger.h"
 #include "../include/windowApplicationSteFile.h"
 
 #define FIRST_ARGUMENT_LENGTH 2
